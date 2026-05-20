@@ -458,6 +458,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {getFirestore,doc,setDoc,getDoc} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {getStorage,ref,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const fb = initializeApp({
   apiKey:"AIzaSyA0C0UR6-R4S_Cp86yEEfj1COLkY5oFPn4",
@@ -468,6 +469,7 @@ const fb = initializeApp({
   appId:"1:233395965846:web:a7320e84c5e78a730517b7"
 });
 const db = getFirestore(fb);
+const storage = getStorage(fb);
 const DDOC = doc(db,'negocio','data');
 const IDOC = doc(db,'negocio','images');
 const ADOC = doc(db,'negocio','accesorios2');
@@ -677,27 +679,40 @@ function renderInv(){
   }).join('');
 }
 
-// IMAGEN PECES
-window.trigImg=function(id){imgCatId=id;document.getElementById('img-input').click()};
-window.delImg=function(catId,idx){if(!Array.isArray(IMGS[catId]))return;IMGS[catId].splice(idx,1);saveImgs();renderInv();};
-window.handleImg=function(ev){
-  const files=Array.from(ev.target.files);if(!files.length||!imgCatId)return;
-  if(!Array.isArray(IMGS[imgCatId]))IMGS[imgCatId]=[];
-  let pending=files.length;
-  files.forEach(function(f){
+// HELPER: comprime imagen → Blob
+function compressImg(file,maxDim,quality){
+  return new Promise(function(resolve){
     const r=new FileReader();
     r.onload=function(e){
       const im=new Image();
       im.onload=function(){
-        const c=document.createElement('canvas');const M=1200;let w=im.width,h=im.height;
+        const c=document.createElement('canvas');const M=maxDim;let w=im.width,h=im.height;
         if(w>h){if(w>M){h=Math.round(h*M/w);w=M}}else{if(h>M){w=Math.round(w*M/h);h=M}}
         c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
-        IMGS[imgCatId].push(c.toDataURL('image/jpeg',.92));
-        pending--;if(pending===0){saveImgs();renderInv();}
+        c.toBlob(function(b){resolve(b)},'image/jpeg',quality);
       };im.src=e.target.result;
-    };r.readAsDataURL(f);
+    };r.readAsDataURL(file);
   });
+}
+
+// IMAGEN PECES
+window.trigImg=function(id){imgCatId=id;document.getElementById('img-input').click()};
+window.delImg=function(catId,idx){if(!Array.isArray(IMGS[catId]))return;IMGS[catId].splice(idx,1);saveImgs();renderInv();};
+window.handleImg=async function(ev){
+  const files=Array.from(ev.target.files);if(!files.length||!imgCatId)return;
+  if(!Array.isArray(IMGS[imgCatId]))IMGS[imgCatId]=[];
   ev.target.value='';
+  for(const f of files){
+    try{
+      const blob=await compressImg(f,1200,.92);
+      const path='fish/'+imgCatId+'/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.jpg';
+      const sref=ref(storage,path);
+      await uploadBytes(sref,blob);
+      const url=await getDownloadURL(sref);
+      IMGS[imgCatId].push(url);
+    }catch(e){console.error('Error subiendo imagen pez:',e);alert('Error al subir imagen: '+e.message);}
+  }
+  saveImgs();renderInv();
 };
 
 // NUEVA VARIEDAD
@@ -918,25 +933,22 @@ window.delHygImg=function(prodId,idx){
   const p=(HYGDB.productos||[]).find(x=>x.id===prodId);if(!p)return;
   (p.imgs=p.imgs||[]).splice(idx,1);saveHyg();renderHyg();
 };
-window.handleHygImg=function(ev){
+window.handleHygImg=async function(ev){
   const files=Array.from(ev.target.files);if(!files.length||!imgHygId)return;
   const p=(HYGDB.productos||[]).find(x=>x.id===imgHygId);if(!p)return;
   if(!p.imgs)p.imgs=[];
-  let pending=files.length;
-  files.forEach(function(f){
-    const r=new FileReader();
-    r.onload=function(e){
-      const im=new Image();
-      im.onload=function(){
-        const c=document.createElement('canvas');const M=1200;let w=im.width,h=im.height;
-        if(w>h){if(w>M){h=Math.round(h*M/w);w=M}}else{if(h>M){w=Math.round(w*M/h);h=M}}
-        c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
-        p.imgs.push(c.toDataURL('image/jpeg',.92));
-        pending--;if(pending===0){saveHyg();renderHyg();}
-      };im.src=e.target.result;
-    };r.readAsDataURL(f);
-  });
   ev.target.value='';
+  for(const f of files){
+    try{
+      const blob=await compressImg(f,1200,.92);
+      const path='hygger/'+imgHygId+'/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.jpg';
+      const sref=ref(storage,path);
+      await uploadBytes(sref,blob);
+      const url=await getDownloadURL(sref);
+      p.imgs.push(url);
+    }catch(e){console.error('Error subiendo imagen Hygger:',e);alert('Error al subir imagen: '+e.message);}
+  }
+  saveHyg();renderHyg();
 };
 
 // ── VENTAS ─────────────────────────────────────────────────
