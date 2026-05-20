@@ -38,8 +38,9 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 .tab.on{color:var(--teal);border-bottom-color:var(--teal);background:rgba(0,212,180,.05)}
 .fbar{padding:.75rem 1rem;border-bottom:1px solid var(--bd);background:var(--bg);display:flex;align-items:center;justify-content:space-between}
 .fbdg{background:rgba(0,200,170,.1);border:1px solid rgba(0,200,170,.3);color:var(--teal);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700}
-.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:1rem;max-width:640px;margin:0 auto}
+.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:1rem;max-width:1000px;margin:0 auto}
 @media(min-width:640px){.fgrid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:900px){.fgrid{grid-template-columns:repeat(4,1fr)}}
 .fc{background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden;transition:transform .15s,border-color .2s}
 .fc:hover{transform:translateY(-2px);border-color:rgba(0,200,170,.35)}
 .fiw{position:relative;overflow:hidden}
@@ -54,7 +55,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 .sok{background:rgba(76,222,138,.08);color:var(--green);border:1px solid rgba(76,222,138,.25);border-radius:20px;padding:3px 8px;font-size:11px;font-weight:600}
 .slo{background:rgba(255,198,109,.08);color:var(--amber);border:1px solid rgba(255,198,109,.25);border-radius:20px;padding:3px 8px;font-size:11px;font-weight:600}
 .wabtn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:linear-gradient(135deg,#25d366,#1ebe5d);border:none;border-radius:8px;padding:10px 12px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;text-decoration:none}
-.asec{padding:0 1rem;max-width:640px;margin:0 auto}
+.asec{padding:0 1rem;max-width:1000px;margin:0 auto}
 .chdr{padding:14px 0 8px;border-bottom:1px solid var(--bd);margin-bottom:10px;font-size:14px;font-weight:700;color:var(--teal)}
 .ac{background:var(--sf);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:10px;cursor:pointer;transition:border-color .15s,transform .15s;display:flex;align-items:stretch}
 .ac:hover{border-color:rgba(0,212,180,.4);transform:translateY(-1px)}
@@ -80,6 +81,11 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 .lbname{color:#fff;font-size:17px;font-weight:800;margin-top:16px;text-align:center}
 .lbinfo{color:var(--teal);font-size:14px;margin-top:5px;text-align:center;font-weight:600}
 .lbcl{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:18px;width:42px;height:42px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10000}
+.lbnav{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:32px;width:46px;height:46px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10000;line-height:1;padding:0}
+.lbprev{left:12px}.lbnext{right:12px}
+.lbdots{display:flex;gap:7px;justify-content:center;margin-top:14px}
+.lbdot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:background .2s;border:none;padding:0}
+.lbdot.on{background:#fff}
 .ctr{text-align:center;padding:4rem 1rem;color:var(--tx3)}
 .spin{width:36px;height:36px;border:3px solid var(--bd);border-top-color:var(--teal);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 16px}
 @keyframes sp{to{transform:rotate(360deg)}}
@@ -117,10 +123,13 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
   Distribuidor Oficial Hygger - Catalogo actualizado en tiempo real
 </div>
 <div class="lb" id="lb" onclick="closeLb()">
-  <button class="lbcl" onclick="closeLb()">X</button>
-  <img id="lb-img" src="" alt="">
+  <button class="lbcl" onclick="closeLb()">×</button>
+  <button class="lbnav lbprev" id="lb-prev" onclick="event.stopPropagation();lbNav(-1)" style="display:none">&#8249;</button>
+  <img id="lb-img" src="" alt="" onclick="event.stopPropagation()">
+  <button class="lbnav lbnext" id="lb-next" onclick="event.stopPropagation();lbNav(1)" style="display:none">&#8250;</button>
   <div class="lbname" id="lb-name"></div>
   <div class="lbinfo" id="lb-info"></div>
+  <div class="lbdots" id="lb-dots"></div>
 </div>
 <div class="panel" id="panel">
   <div class="phdr">
@@ -198,11 +207,14 @@ function renderFish(){
   if(!disp.length){el.innerHTML='<div class="ctr"><p>No hay peces disponibles</p></div>';return;}
   var h='<div class="fgrid">';
   disp.forEach(function(cat){
-    var st=getStock(cat.id,DB),img=IMGS[cat.id]||'';
+    var st=getStock(cat.id,DB),imgs=Array.isArray(IMGS[cat.id])?IMGS[cat.id]:IMGS[cat.id]?[IMGS[cat.id]]:[],img=imgs[0]||'';
     var stTag=st<=2?'<span class="slo">Ultimos '+st+'</span>':'<span class="sok">'+st+' disp.</span>';
     var waMsg=encodeURIComponent('Hola Doctor Disco!\nMe interesa: '+cat.nombre+' ('+cat.talla+')\nPrecio: '+fmt(cat.precio)+'\nEsta disponible?');
     h+='<div class="fc">';
-    if(img){h+='<div class="fiw"><img class="fimg" src="'+img+'" alt="'+cat.nombre+'"><div class="zic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg></div></div>';}
+    if(img){
+      var gal=imgs.length>1?'<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;font-weight:600;border-radius:10px;padding:2px 8px">'+imgs.length+' fotos</div>':'';
+      h+='<div class="fiw"><img class="fimg" src="'+img+'" alt="'+cat.nombre+'" data-imgs="'+encodeURIComponent(JSON.stringify(imgs))+'"><div class="zic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg></div>'+gal+'</div>';
+    }
     else{h+='<div class="fph"><img src="'+LI+'" style="width:50px;height:50px;object-fit:contain;opacity:.25"></div>';}
     h+='<div class="fbody"><div class="fname">'+cat.nombre+'</div><div class="ftalla">Talla: '+cat.talla+'</div><div class="fbot"><div class="fprice">'+fmt(cat.precio)+'</div>'+stTag+'</div>';
     h+='<a href="https://wa.me/523310934314?text='+waMsg+'" target="_blank" class="wabtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.546 5.877L0 24l6.303-1.519A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.502-5.2-1.378l-.373-.22-3.742.902.944-3.63-.243-.374A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Me interesa</a>';
@@ -251,15 +263,29 @@ function openPanel(id){
 }
 function closePanel(){document.getElementById('panel').classList.remove('open');document.body.style.overflow='';}
 
+var lbImgs=[],lbIdx=0;
+function lbShow(i){
+  lbIdx=i;
+  document.getElementById('lb-img').src=lbImgs[i];
+  document.getElementById('lb-prev').style.display=lbImgs.length>1?'flex':'none';
+  document.getElementById('lb-next').style.display=lbImgs.length>1?'flex':'none';
+  var dots=document.getElementById('lb-dots');
+  dots.querySelectorAll('.lbdot').forEach(function(d,j){d.classList.toggle('on',j===i);});
+}
+window.lbNav=function(dir){lbShow((lbIdx+dir+lbImgs.length)%lbImgs.length);};
 document.addEventListener('click',function(e){
   var img=e.target.closest('.fimg');
   if(img){
     var card=img.closest('.fc');
-    document.getElementById('lb-img').src=img.src;
+    var raw=img.dataset.imgs;
+    lbImgs=raw?JSON.parse(decodeURIComponent(raw)):[img.src];
     document.getElementById('lb-name').textContent=card.querySelector('.fname')?card.querySelector('.fname').textContent:'';
     document.getElementById('lb-info').textContent=(card.querySelector('.ftalla')?card.querySelector('.ftalla').textContent:'')+' | '+(card.querySelector('.fprice')?card.querySelector('.fprice').textContent:'');
+    var dots=document.getElementById('lb-dots');
+    dots.innerHTML=lbImgs.length>1?lbImgs.map(function(_,i){return '<button class="lbdot" onclick="event.stopPropagation();lbShow('+i+')"></button>';}).join(''):'';
     document.getElementById('lb').classList.add('open');
     document.body.style.overflow='hidden';
+    lbShow(0);
   }
 });
 function closeLb(){document.getElementById('lb').classList.remove('open');document.body.style.overflow='';}
@@ -311,7 +337,7 @@ function loadAll(){
     renderFish();
     // Load images
     fetchDoc('images',function(e2,imgs){
-      if(!e2&&imgs){IMGS=imgs;renderFish();}
+      if(!e2&&imgs){IMGS=imgs;Object.keys(IMGS).forEach(function(k){if(typeof IMGS[k]==='string')IMGS[k]=[IMGS[k]];});renderFish();}
     });
     // Load acc stock
     fetchDoc('accesorios2',function(e3,acc){
