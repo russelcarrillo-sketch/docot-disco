@@ -689,10 +689,10 @@ window.handleImg=function(ev){
     r.onload=function(e){
       const im=new Image();
       im.onload=function(){
-        const c=document.createElement('canvas');const M=400;let w=im.width,h=im.height;
+        const c=document.createElement('canvas');const M=1200;let w=im.width,h=im.height;
         if(w>h){if(w>M){h=Math.round(h*M/w);w=M}}else{if(h>M){w=Math.round(w*M/h);h=M}}
         c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
-        IMGS[imgCatId].push(c.toDataURL('image/jpeg',.72));
+        IMGS[imgCatId].push(c.toDataURL('image/jpeg',.92));
         pending--;if(pending===0){saveImgs();renderInv();}
       };im.src=e.target.result;
     };r.readAsDataURL(f);
@@ -928,10 +928,10 @@ window.handleHygImg=function(ev){
     r.onload=function(e){
       const im=new Image();
       im.onload=function(){
-        const c=document.createElement('canvas');const M=600;let w=im.width,h=im.height;
+        const c=document.createElement('canvas');const M=1200;let w=im.width,h=im.height;
         if(w>h){if(w>M){h=Math.round(h*M/w);w=M}}else{if(h>M){w=Math.round(w*M/h);h=M}}
         c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
-        p.imgs.push(c.toDataURL('image/jpeg',.75));
+        p.imgs.push(c.toDataURL('image/jpeg',.92));
         pending--;if(pending===0){saveHyg();renderHyg();}
       };im.src=e.target.result;
     };r.readAsDataURL(f);
