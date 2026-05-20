@@ -75,9 +75,9 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 .pbody{padding:1rem}
 .vrow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}
 .vrow:last-child{border-bottom:none}
-.lb{position:fixed;inset:0;background:rgba(2,10,22,.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(8px)}
+.lb{position:fixed;inset:0;background:rgba(2,10,22,.97);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:.75rem;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(12px)}
 .lb.open{opacity:1;pointer-events:all}
-.lb img{max-width:100%;max-height:72vh;object-fit:contain;border-radius:14px;box-shadow:0 0 60px rgba(0,180,220,.2),0 16px 40px rgba(0,0,0,.6)}
+.lb img{max-width:92vw;max-height:82vh;object-fit:contain;border-radius:14px;box-shadow:0 0 80px rgba(0,180,220,.25),0 20px 60px rgba(0,0,0,.8)}
 .lbname{color:#fff;font-size:17px;font-weight:800;margin-top:16px;text-align:center}
 .lbinfo{color:var(--teal);font-size:14px;margin-top:5px;text-align:center;font-weight:600}
 .lbcl{position:fixed;top:16px;right:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:18px;width:42px;height:42px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10000}
@@ -117,7 +117,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
   <div id="fish-list"><div class="ctr"><div class="spin"></div><p>Cargando...</p></div></div>
 </div>
 <div id="sec-a" style="display:none">
-  <div class="fbar"><span style="font-size:13px;color:var(--tx2)">Productos Hygger</span><span class="fbdg">28 modelos</span></div>
+  <div class="fbar"><span style="font-size:13px;color:var(--tx2)">Productos Hygger</span><span class="fbdg" id="cnt-a">...</span></div>
   <div class="asec" id="acc-list"></div>
 </div>
 <div class="foot">
@@ -202,8 +202,10 @@ window.filterFish=function(q){searchTerm=q.toLowerCase();renderFish();};
 
 function renderAcc(){
   var prods=HYGDB.productos||[];
+  var cntEl=document.getElementById('cnt-a');
+  if(cntEl)cntEl.textContent=prods.length+' producto'+(prods.length!==1?'s':'');
   if(!prods.length){
-    document.getElementById('acc-list').innerHTML='<div style="text-align:center;padding:3rem 1rem;color:var(--tx3)"><p>Cargando productos...</p></div>';
+    document.getElementById('acc-list').innerHTML='<div style="text-align:center;padding:3rem 1rem;color:var(--tx3)"><p>Sin productos aún</p></div>';
     return;
   }
   var icons={'Lámparas':'💡','Calentadores':'🌡️','Filtros':'🔄','Bombas':'💨','Accesorios':'🔧','Sustratos':'🪨'};
