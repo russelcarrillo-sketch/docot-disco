@@ -250,9 +250,7 @@ function openPanel(id){
   var info=p.descripcion||'';
   document.getElementById('pan-info').innerHTML=info?info:'<span style="color:var(--tx3)">Sin descripción</span>';
   var wa=HYGDB.whatsapp||'523310934314';
-  var waMsg=encodeURIComponent('Hola Doctor Disco!
-Me interesa: '+p.nombre+(p.modelo?' ('+p.modelo+')':'')+'
-¿Cuál es el precio y está disponible?');
+  var waMsg=encodeURIComponent('Hola Doctor Disco!\nMe interesa: '+p.nombre+(p.modelo?' ('+p.modelo+')':'')+' \n¿Cuál es el precio y está disponible?');
   document.getElementById('pan-wa').href='https://wa.me/'+wa+'?text='+waMsg;
   document.getElementById('panel').classList.add('open');
   document.body.style.overflow='hidden';
