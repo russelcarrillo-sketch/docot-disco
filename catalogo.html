@@ -8,12 +8,12 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#040e1a;--sf:#071524;--sf2:#0a1f35;--bd:#0d2a47;--teal:#00d4b4;--tx:#e2f0f9;--tx2:#7fa8c4;--tx3:#3a6080;--green:#4cde8a;--amber:#ffc66d}
 html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;overflow-x:hidden}
-.hero{min-height:100vh;background:radial-gradient(ellipse at 22% 0%,rgba(0,140,210,.26),transparent 52%),radial-gradient(ellipse at 78% 0%,rgba(0,110,190,.2),transparent 48%),radial-gradient(ellipse at 50% 110%,rgba(0,5,20,.95),transparent 50%),radial-gradient(ellipse at 25% 60%,rgba(0,70,150,.15),transparent 45%),radial-gradient(ellipse at 75% 65%,rgba(0,50,130,.12),transparent 42%),linear-gradient(180deg,#010c1a 0%,#021422 22%,#031b2e 50%,#021018 80%,#010810 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1rem;position:relative;overflow:hidden}
+.hero{min-height:100vh;background:linear-gradient(180deg,rgba(1,8,20,.78) 0%,rgba(1,8,20,.42) 28%,rgba(1,8,20,.42) 60%,rgba(1,8,20,.92) 100%),url('https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Gemini_Generated_Image_jd4c4bjd4c4bjd4c.png?alt=media&token=dea2f203-1203-4645-b3e2-ffd074783379') center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1rem;position:relative;overflow:hidden}
 .bubs,.cau{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .bub{position:absolute;bottom:-60px;border-radius:50%;background:rgba(0,180,220,.1);border:1px solid rgba(0,200,240,.18);animation:rise linear infinite}
 @keyframes rise{0%{opacity:.8}100%{transform:translateY(-110vh) scale(1.3);opacity:0}}
 .b1{width:18px;height:18px;left:10%;animation-duration:8s}.b2{width:10px;height:10px;left:25%;animation-duration:11s;animation-delay:2s}.b3{width:24px;height:24px;left:50%;animation-duration:9s;animation-delay:1s}.b4{width:14px;height:14px;left:70%;animation-duration:13s;animation-delay:3s}.b5{width:8px;height:8px;left:85%;animation-duration:7s;animation-delay:4s}.b6{width:20px;height:20px;left:40%;animation-duration:10s;animation-delay:5s}.b7{width:12px;height:12px;left:60%;animation-duration:12s;animation-delay:1.5s}.b8{width:16px;height:16px;left:15%;animation-duration:9.5s;animation-delay:6s}
-.cau{opacity:.04;background:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(0,200,255,.5) 30px,rgba(0,200,255,.5) 31px),repeating-linear-gradient(-45deg,transparent,transparent 30px,rgba(0,150,255,.3) 30px,rgba(0,150,255,.3) 31px);animation:cs 6s ease-in-out infinite alternate}
+.cau{opacity:.02;background:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(0,200,255,.5) 30px,rgba(0,200,255,.5) 31px),repeating-linear-gradient(-45deg,transparent,transparent 30px,rgba(0,150,255,.3) 30px,rgba(0,150,255,.3) 31px);animation:cs 6s ease-in-out infinite alternate}
 @keyframes cs{0%{transform:scale(1) rotate(0deg)}100%{transform:scale(1.05) rotate(2deg)}}
 .lw{position:relative;z-index:1;margin-bottom:1.4rem;display:inline-block}
 .lr1{position:absolute;inset:-14px;border-radius:50%;border:2px solid transparent;background:linear-gradient(135deg,rgba(0,212,180,.6),rgba(0,100,200,.4),rgba(0,212,180,.6)) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;animation:rot 4s linear infinite}
@@ -134,10 +134,10 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 /* ── LIGHT RAYS ── */
 .hlrays{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .hlr{position:absolute;top:-10px;border-radius:2px;transform-origin:top center}
-.hlr1{left:15%;width:3px;height:72%;background:linear-gradient(180deg,rgba(0,200,255,.2),transparent);transform:rotate(-11deg);animation:lrp 9s ease-in-out infinite}
+.hlr1{left:15%;width:3px;height:72%;background:linear-gradient(180deg,rgba(200,255,220,.22),transparent);transform:rotate(-11deg);animation:lrp 9s ease-in-out infinite}
 .hlr2{left:26%;width:1.5px;height:58%;background:linear-gradient(180deg,rgba(0,180,240,.15),transparent);transform:rotate(-5deg);animation:lrp 13s 1.2s ease-in-out infinite}
-.hlr3{left:44%;width:2px;height:78%;background:linear-gradient(180deg,rgba(0,210,255,.18),transparent);transform:rotate(-1deg);animation:lrp 10s 2.3s ease-in-out infinite}
-.hlr4{right:18%;width:3px;height:68%;background:linear-gradient(180deg,rgba(0,190,240,.2),transparent);transform:rotate(10deg);animation:lrp 11s .6s ease-in-out infinite}
+.hlr3{left:44%;width:2px;height:78%;background:linear-gradient(180deg,rgba(200,255,220,.2),transparent);transform:rotate(-1deg);animation:lrp 10s 2.3s ease-in-out infinite}
+.hlr4{right:18%;width:3px;height:68%;background:linear-gradient(180deg,rgba(200,255,220,.22),transparent);transform:rotate(10deg);animation:lrp 11s .6s ease-in-out infinite}
 .hlr5{right:32%;width:1.5px;height:52%;background:linear-gradient(180deg,rgba(0,170,220,.14),transparent);transform:rotate(4deg);animation:lrp 8s 1.8s ease-in-out infinite}
 
 /* ── AQUARIUM SCENE ── */
@@ -199,92 +199,6 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
       <div class="hicon"><svg class="hicon-em" viewBox="0 0 32 32" fill="none" stroke="rgba(0,212,180,.85)" stroke-width="1.8" stroke-linecap="round"><line x1="16" y1="4" x2="16" y2="28"/><path d="M10 10c0 3.3 2.7 6 6 6s6-2.7 6-6"/><path d="M7 22h18"/></svg><span class="hicon-lb">Calefactor</span></div>
       <div class="hicon"><svg class="hicon-em" viewBox="0 0 32 32" fill="none" stroke="rgba(0,212,180,.85)" stroke-width="1.8" stroke-linecap="round"><circle cx="16" cy="14" r="6"/><path d="M4 26c0-5 5.4-9 12-9s12 4 12 9"/><path d="M16 8v-4M22 10l3-3M10 10l-3-3"/></svg><span class="hicon-lb">Acuario</span></div>
     </div>
-  </div>
-  <!-- AQUARIUM SCENE -->
-  <div class="aq-scene">
-    <svg viewBox="0 0 1440 240" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(90,70,35,0)"/>
-          <stop offset="100%" stop-color="rgba(65,50,25,.5)"/>
-        </linearGradient>
-      </defs>
-      <!-- Sandy floor -->
-      <rect x="0" y="195" width="1440" height="45" fill="url(#sand)"/>
-      <!-- Main rocks left -->
-      <ellipse cx="95" cy="225" rx="72" ry="38" fill="#232535"/>
-      <ellipse cx="145" cy="232" rx="52" ry="28" fill="#1b1d2e"/>
-      <ellipse cx="52" cy="230" rx="48" ry="26" fill="#2a2d40"/>
-      <ellipse cx="175" cy="234" rx="36" ry="20" fill="#232535"/>
-      <ellipse cx="22" cy="236" rx="28" ry="16" fill="#1b1d2e"/>
-      <!-- Main rocks right -->
-      <ellipse cx="1345" cy="225" rx="72" ry="38" fill="#232535"/>
-      <ellipse cx="1295" cy="232" rx="52" ry="28" fill="#1b1d2e"/>
-      <ellipse cx="1388" cy="230" rx="48" ry="26" fill="#2a2d40"/>
-      <ellipse cx="1265" cy="234" rx="36" ry="20" fill="#232535"/>
-      <ellipse cx="1418" cy="236" rx="28" ry="16" fill="#1b1d2e"/>
-      <!-- Center rocks -->
-      <ellipse cx="660" cy="232" rx="58" ry="22" fill="#232535"/>
-      <ellipse cx="720" cy="235" rx="42" ry="16" fill="#1b1d2e"/>
-      <ellipse cx="785" cy="232" rx="52" ry="20" fill="#2a2d40"/>
-      <!-- Small scattered rocks -->
-      <ellipse cx="330" cy="234" rx="24" ry="12" fill="#232535" opacity=".65"/>
-      <ellipse cx="490" cy="236" rx="17" ry="9" fill="#1b1d2e" opacity=".55"/>
-      <ellipse cx="950" cy="234" rx="22" ry="11" fill="#232535" opacity=".65"/>
-      <ellipse cx="1110" cy="236" rx="19" ry="10" fill="#1b1d2e" opacity=".55"/>
-      <!-- Driftwood left -->
-      <g transform="rotate(-9,200,220)">
-        <rect x="10" y="210" width="230" height="20" rx="10" fill="#3a2415" opacity=".9"/>
-        <rect x="55" y="204" width="10" height="30" rx="5" fill="#4d3020" transform="rotate(7,60,219)"/>
-        <rect x="195" y="202" width="9" height="28" rx="4" fill="#4d3020" transform="rotate(-6,199,216)"/>
-        <ellipse cx="35" cy="210" rx="16" ry="9" fill="#2e1c10"/>
-        <ellipse cx="228" cy="208" rx="14" ry="8" fill="#2e1c10"/>
-      </g>
-      <g transform="rotate(-18,110,228)">
-        <rect x="15" y="224" width="150" height="14" rx="7" fill="#4d3020" opacity=".8"/>
-      </g>
-      <!-- Driftwood right -->
-      <g transform="rotate(9,1240,220)">
-        <rect x="1200" y="210" width="230" height="20" rx="10" fill="#3a2415" opacity=".9"/>
-        <rect x="1220" y="202" width="9" height="28" rx="4" fill="#4d3020" transform="rotate(-6,1225,216)"/>
-        <rect x="1380" y="204" width="10" height="30" rx="5" fill="#4d3020" transform="rotate(7,1385,219)"/>
-        <ellipse cx="1205" cy="208" rx="14" ry="8" fill="#2e1c10"/>
-        <ellipse cx="1405" cy="210" rx="16" ry="9" fill="#2e1c10"/>
-      </g>
-      <g transform="rotate(18,1330,228)">
-        <rect x="1275" y="224" width="150" height="14" rx="7" fill="#4d3020" opacity=".8"/>
-      </g>
-      <!-- Plants left cluster -->
-      <g class="plant-l">
-        <line x1="80" y1="220" x2="78" y2="155" stroke="#1e5e28" stroke-width="3.5"/>
-        <line x1="78" y1="185" x2="58" y2="158" stroke="#1e5e28" stroke-width="2.5"/>
-        <ellipse cx="78" cy="155" rx="20" ry="38" fill="#1e6830" transform="rotate(-8,78,190)" opacity=".85"/>
-        <ellipse cx="58" cy="158" rx="15" ry="30" fill="#196028" transform="rotate(12,58,188)" opacity=".8"/>
-        <line x1="98" y1="222" x2="96" y2="165" stroke="#256e30" stroke-width="3"/>
-        <ellipse cx="96" cy="165" rx="18" ry="34" fill="#256e30" transform="rotate(-6,96,198)" opacity=".85"/>
-        <line x1="115" y1="223" x2="118" y2="175" stroke="#2d8040" stroke-width="2.5"/>
-        <ellipse cx="118" cy="175" rx="14" ry="28" fill="#2d8040" transform="rotate(10,118,202)" opacity=".8"/>
-        <line x1="62" y1="222" x2="58" y2="178" stroke="#1b5c24" stroke-width="2"/>
-        <ellipse cx="58" cy="178" rx="12" ry="24" fill="#1b5c24" transform="rotate(-14,58,200)" opacity=".75"/>
-        <line x1="130" y1="223" x2="135" y2="185" stroke="#228038" stroke-width="2"/>
-        <ellipse cx="135" cy="185" rx="11" ry="22" fill="#228038" transform="rotate(15,135,206)" opacity=".78"/>
-      </g>
-      <!-- Plants right cluster -->
-      <g class="plant-r">
-        <line x1="1360" y1="220" x2="1362" y2="155" stroke="#1e5e28" stroke-width="3.5"/>
-        <line x1="1362" y1="185" x2="1382" y2="158" stroke="#1e5e28" stroke-width="2.5"/>
-        <ellipse cx="1362" cy="155" rx="20" ry="38" fill="#1e6830" transform="rotate(8,1362,190)" opacity=".85"/>
-        <ellipse cx="1382" cy="158" rx="15" ry="30" fill="#196028" transform="rotate(-12,1382,188)" opacity=".8"/>
-        <line x1="1342" y1="222" x2="1344" y2="165" stroke="#256e30" stroke-width="3"/>
-        <ellipse cx="1344" cy="165" rx="18" ry="34" fill="#256e30" transform="rotate(6,1344,198)" opacity=".85"/>
-        <line x1="1325" y1="223" x2="1322" y2="175" stroke="#2d8040" stroke-width="2.5"/>
-        <ellipse cx="1322" cy="175" rx="14" ry="28" fill="#2d8040" transform="rotate(-10,1322,202)" opacity=".8"/>
-        <line x1="1378" y1="222" x2="1382" y2="178" stroke="#1b5c24" stroke-width="2"/>
-        <ellipse cx="1382" cy="178" rx="12" ry="24" fill="#1b5c24" transform="rotate(14,1382,200)" opacity=".75"/>
-        <line x1="1310" y1="223" x2="1305" y2="185" stroke="#228038" stroke-width="2"/>
-        <ellipse cx="1305" cy="185" rx="11" ry="22" fill="#228038" transform="rotate(-15,1305,206)" opacity=".78"/>
-      </g>
-    </svg>
   </div>
   <div class="sh"><span>Explorar</span><div class="sa"></div></div>
 </section>
