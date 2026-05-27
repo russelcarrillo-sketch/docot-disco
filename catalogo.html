@@ -256,6 +256,25 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
   <div class="lbinfo" id="lb-info"></div>
   <div class="lbdots" id="lb-dots"></div>
 </div>
+<div class="panel" id="blog-panel">
+  <div class="phdr" style="position:sticky;top:0;z-index:2;background:var(--bg)">
+    <button class="pclose" onclick="closeBlogPanel()">←</button>
+    <div style="flex:1;min-width:0;overflow:hidden">
+      <div style="font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="bp-tit"></div>
+      <div style="font-size:11px;color:var(--teal);margin-top:2px" id="bp-date"></div>
+    </div>
+    <a id="bp-ext" href="#" target="_blank" rel="noopener" style="flex-shrink:0;background:rgba(0,212,180,.1);border:1px solid rgba(0,212,180,.28);color:var(--teal);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:4px">↗ PDF</a>
+  </div>
+  <img id="bp-cover" src="" alt="" style="width:100%;max-height:200px;object-fit:cover;display:none">
+  <div id="bp-desc-w" style="padding:.85rem 1rem .4rem;font-size:14px;color:var(--tx2);line-height:1.6;border-bottom:1px solid var(--bd);display:none"></div>
+  <div id="bp-pdf-w" style="display:none">
+    <iframe id="bp-iframe" src="" style="width:100%;height:calc(100vh - 58px);border:none;display:block"></iframe>
+  </div>
+  <div id="bp-nopdf" style="display:none;text-align:center;padding:4rem 1rem;color:var(--tx3)">
+    <div style="font-size:48px;margin-bottom:1rem">📄</div>
+    <p>Este artículo no tiene archivo PDF adjunto</p>
+  </div>
+</div>
 <div class="panel" id="panel">
   <div class="phdr">
     <button class="pclose" onclick="closePanel()">Atras</button>
@@ -399,6 +418,7 @@ function renderAcc(){
   document.getElementById('acc-list').innerHTML=h;
 }
 
+var BLOG_MAP={};
 function renderBlog(){
   var posts=(BLOGDB.posts||[]).slice().sort(function(a,b){return(b.fecha||'').localeCompare(a.fecha||'');});
   var cntEl=document.getElementById('cnt-b');
@@ -406,14 +426,15 @@ function renderBlog(){
   var el=document.getElementById('blog-list');
   if(!el)return;
   if(!posts.length){el.innerHTML='<div class="ctr"><p>No hay artículos publicados aún</p></div>';return;}
+  BLOG_MAP={};
+  posts.forEach(function(p){BLOG_MAP[p.id]=p;});
   var h='';
   posts.forEach(function(p){
     var dateStr='';
     if(p.fecha){var d=new Date(p.fecha+'T12:00:00');dateStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});}
-    var href=p.pdfUrl?'href="'+p.pdfUrl+'" target="_blank" rel="noopener"':'href="#"';
-    h+='<a class="bcard" '+href+'>';
+    h+='<div class="bcard" onclick="openBlogPost(\''+p.id+'\')">';
     h+='<div class="bimgw">';
-    if(p.coverUrl){h+='<img class="bimg" src="'+p.coverUrl+'" alt="'+p.titulo+'">';}
+    if(p.coverUrl){h+='<img class="bimg" src="'+p.coverUrl+'" alt="'+p.titulo+'" loading="lazy">';}
     else{h+='<div class="biph"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(0,212,180,.3)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>';}
     if(p.pdfUrl){h+='<div class="bpdf-ic">PDF</div>';}
     h+='</div>';
@@ -421,9 +442,45 @@ function renderBlog(){
     h+='<div class="bttl">'+p.titulo+'</div>';
     if(p.descripcion){h+='<div class="bdesc">'+p.descripcion+'</div>';}
     if(dateStr){h+='<div class="bdate">'+dateStr+'</div>';}
-    h+='</div></a>';
+    h+='</div></div>';
   });
   el.innerHTML=h;
+}
+
+function openBlogPost(id){
+  var p=BLOG_MAP[id];if(!p)return;
+  document.getElementById('bp-tit').textContent=p.titulo;
+  var dateStr='';
+  if(p.fecha){var d=new Date(p.fecha+'T12:00:00');dateStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});}
+  document.getElementById('bp-date').textContent=dateStr;
+  var cover=document.getElementById('bp-cover');
+  if(p.coverUrl){cover.src=p.coverUrl;cover.style.display='block';}
+  else{cover.style.display='none';}
+  var descW=document.getElementById('bp-desc-w');
+  if(p.descripcion){descW.textContent=p.descripcion;descW.style.display='block';}
+  else{descW.style.display='none';}
+  var pdfW=document.getElementById('bp-pdf-w');
+  var nopdf=document.getElementById('bp-nopdf');
+  var extBtn=document.getElementById('bp-ext');
+  if(p.pdfUrl){
+    // Google Docs Viewer: funciona en todos los dispositivos incluyendo iOS
+    var viewer='https://docs.google.com/viewer?embedded=true&url='+encodeURIComponent(p.pdfUrl);
+    document.getElementById('bp-iframe').src=viewer;
+    extBtn.href=p.pdfUrl;extBtn.style.display='flex';
+    pdfW.style.display='block';nopdf.style.display='none';
+  }else{
+    document.getElementById('bp-iframe').src='';
+    extBtn.style.display='none';
+    pdfW.style.display='none';nopdf.style.display='block';
+  }
+  document.getElementById('blog-panel').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeBlogPanel(){
+  document.getElementById('blog-panel').classList.remove('open');
+  document.getElementById('bp-iframe').src='';
+  document.body.style.overflow='';
 }
 
 function openPanel(id){
@@ -481,7 +538,7 @@ document.addEventListener('click',function(e){
 });
 function closeLb(){document.getElementById('lb').classList.remove('open');document.body.style.overflow='';}
 document.addEventListener('click',function(e){var ac=e.target.closest('.ac');if(ac&&ac.dataset.id)openPanel(ac.dataset.id);});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeLb();closePanel();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeLb();closePanel();closeBlogPanel();}});
 
 // Load from Firebase using REST API - no SDK needed, avoids all module issues
 var PROJECT='peces-disco';
