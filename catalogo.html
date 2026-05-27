@@ -156,6 +156,22 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 @keyframes bgff{to{opacity:.7}}
 /* ── TABS SHIFT BELOW NAV ── */
 .tabs{top:52px!important}
+/* ── BLOG ── */
+.bgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:1rem;width:100%;box-sizing:border-box}
+@media(min-width:640px){.bgrid{grid-template-columns:repeat(2,1fr);gap:16px;padding:1.2rem}}
+@media(min-width:900px){.bgrid{grid-template-columns:repeat(3,1fr);gap:18px;padding:1.4rem}}
+@media(min-width:1300px){.bgrid{grid-template-columns:repeat(4,1fr);gap:20px;padding:1.6rem}}
+.bcard{background:var(--sf);border:1px solid var(--bd);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .18s,border-color .2s,box-shadow .2s;text-decoration:none;display:block;color:inherit}
+.bcard:hover{transform:translateY(-4px);border-color:rgba(0,200,170,.45);box-shadow:0 8px 28px rgba(0,0,0,.35)}
+.bimgw{position:relative;overflow:hidden}
+.bimg{width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--sf2);display:block;transition:transform .3s}
+.bcard:hover .bimg{transform:scale(1.04)}
+.biph{width:100%;aspect-ratio:16/9;background:var(--sf2);display:flex;align-items:center;justify-content:center}
+.bbody{padding:.85rem 1rem 1rem}
+.bttl{font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px}
+.bdesc{font-size:12px;color:var(--tx2);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bdate{font-size:11px;color:var(--tx3);font-weight:600}
+.bpdf-ic{position:absolute;bottom:8px;right:8px;background:rgba(255,100,80,.85);color:#fff;border-radius:6px;padding:3px 7px;font-size:10px;font-weight:700;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -165,6 +181,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
     <a class="snlink active" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">Inicio</a>
     <a class="snlink" href="#" onclick="document.getElementById('sec-p').scrollIntoView({behavior:'smooth'});return false">Catálogo</a>
     <a class="snlink" href="#" onclick="switchTab('a');document.getElementById('sec-a').scrollIntoView({behavior:'smooth'});return false">Accesorios</a>
+    <a class="snlink" href="#" onclick="switchTab('b');document.querySelector('.tabs').scrollIntoView({behavior:'smooth'});return false">Blog</a>
     <a class="snlink" href="#" onclick="var w=HYGDB&&HYGDB.whatsapp?HYGDB.whatsapp:'523310934314';window.open('https://wa.me/'+w+'?text='+encodeURIComponent('Hola Doctor Disco! Me gustaría obtener más información.'),'_blank');return false">Contacto</a>
   </div>
 </nav>
@@ -205,6 +222,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 <div class="tabs">
   <button class="tab on" id="tab-p" onclick="switchTab('p')">Peces</button>
   <button class="tab" id="tab-a" onclick="switchTab('a')">Accesorios</button>
+  <button class="tab" id="tab-b" onclick="switchTab('b')">Blog</button>
 </div>
 <div id="sec-p">
   <div class="fbar" style="flex-direction:column;align-items:stretch;gap:8px">
@@ -216,6 +234,13 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 <div id="sec-a" style="display:none">
   <div class="fbar"><span style="font-size:13px;color:var(--tx2)">Productos Hygger</span><span class="fbdg" id="cnt-a">...</span></div>
   <div class="asec" id="acc-list"></div>
+</div>
+<div id="sec-b" style="display:none">
+  <div class="fbar">
+    <span style="font-size:13px;color:var(--tx2)">Artículos e Infografías</span>
+    <span class="fbdg" id="cnt-b">...</span>
+  </div>
+  <div class="bgrid" id="blog-list"><div class="ctr"><div class="spin"></div><p>Cargando...</p></div></div>
 </div>
 <div class="foot">
   <img src="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e" style="width:40px;height:40px;object-fit:contain;opacity:.5;display:block;margin:0 auto 8px">
@@ -250,7 +275,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 var LI = "https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e";
 // Productos cargados dinámicamente de Firestore
 var HYGDB={productos:[],whatsapp:'523310934314'};
-var DB=null, IMGS={}, ACCDB={};
+var DB=null, IMGS={}, ACCDB={}, BLOGDB={posts:[]};
 
 function fmt(n){return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0});}
 function getStock(cid,d){
@@ -265,9 +290,12 @@ function getStock(cid,d){
 function switchTab(t){
   document.getElementById('sec-p').style.display=t==='p'?'block':'none';
   document.getElementById('sec-a').style.display=t==='a'?'block':'none';
+  document.getElementById('sec-b').style.display=t==='b'?'block':'none';
   document.getElementById('tab-p').classList.toggle('on',t==='p');
   document.getElementById('tab-a').classList.toggle('on',t==='a');
+  document.getElementById('tab-b').classList.toggle('on',t==='b');
   if(t==='a')renderAcc();
+  if(t==='b')renderBlog();
 }
 
 function renderFish(){
@@ -369,6 +397,33 @@ function renderAcc(){
     });
   });
   document.getElementById('acc-list').innerHTML=h;
+}
+
+function renderBlog(){
+  var posts=(BLOGDB.posts||[]).slice().sort(function(a,b){return(b.fecha||'').localeCompare(a.fecha||'');});
+  var cntEl=document.getElementById('cnt-b');
+  if(cntEl)cntEl.textContent=posts.length+' artículo'+(posts.length!==1?'s':'');
+  var el=document.getElementById('blog-list');
+  if(!el)return;
+  if(!posts.length){el.innerHTML='<div class="ctr"><p>No hay artículos publicados aún</p></div>';return;}
+  var h='';
+  posts.forEach(function(p){
+    var dateStr='';
+    if(p.fecha){var d=new Date(p.fecha+'T12:00:00');dateStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});}
+    var href=p.pdfUrl?'href="'+p.pdfUrl+'" target="_blank" rel="noopener"':'href="#"';
+    h+='<a class="bcard" '+href+'>';
+    h+='<div class="bimgw">';
+    if(p.coverUrl){h+='<img class="bimg" src="'+p.coverUrl+'" alt="'+p.titulo+'">';}
+    else{h+='<div class="biph"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(0,212,180,.3)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>';}
+    if(p.pdfUrl){h+='<div class="bpdf-ic">PDF</div>';}
+    h+='</div>';
+    h+='<div class="bbody">';
+    h+='<div class="bttl">'+p.titulo+'</div>';
+    if(p.descripcion){h+='<div class="bdesc">'+p.descripcion+'</div>';}
+    if(dateStr){h+='<div class="bdate">'+dateStr+'</div>';}
+    h+='</div></a>';
+  });
+  el.innerHTML=h;
 }
 
 function openPanel(id){
@@ -478,6 +533,10 @@ function loadAll(){
     // Load acc stock
     fetchDoc('hygger',function(e3,hyg){
       if(!e3&&hyg){HYGDB=hyg;if(document.getElementById('sec-a').style.display!=='none')renderAcc();}
+    });
+    // Load blog
+    fetchDoc('blog',function(e4,blog){
+      if(!e4&&blog){BLOGDB=blog;if(!BLOGDB.posts)BLOGDB.posts=[];if(document.getElementById('sec-b').style.display!=='none')renderBlog();}
     });
   });
 }
