@@ -2,8 +2,21 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Doctor Disco - Premium Care</title>
+<meta name="description" content="Peces disco de importación de la más alta calidad y accesorios Hygger. Catálogo en vivo con disponibilidad real.">
+<meta name="theme-color" content="#040e1a">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Doctor Disco - Premium Care">
+<meta property="og:description" content="Peces disco de importación de la más alta calidad y accesorios Hygger. Catálogo en vivo con disponibilidad real.">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Gemini_Generated_Image_jd4c4bjd4c4bjd4c.png?alt=media&token=dea2f203-1203-4645-b3e2-ffd074783379">
+<link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e">
+<link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e">
+<link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="preconnect" href="https://firebasestorage.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#040e1a;--sf:#071524;--sf2:#0a1f35;--bd:#0d2a47;--teal:#00d4b4;--tx:#e2f0f9;--tx2:#7fa8c4;--tx3:#3a6080;--green:#4cde8a;--amber:#ffc66d}
@@ -172,16 +185,63 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 .bdesc{font-size:12px;color:var(--tx2);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .bdate{font-size:11px;color:var(--tx3);font-weight:600}
 .bpdf-ic{position:absolute;bottom:8px;right:8px;background:rgba(255,100,80,.85);color:#fff;border-radius:6px;padding:3px 7px;font-size:10px;font-weight:700;letter-spacing:.04em}
+/* ── PREMIUM POLISH ── */
+html{scroll-behavior:smooth}
+::selection{background:rgba(0,212,180,.32);color:#fff}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:8px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#1a4066}
+.fname,.fprice,.bttl,.hcard-ttl,.chdr,.hcta,.tab,.acname,.acprice{font-family:'Sora',-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+/* Stock badge sobre la imagen */
+.stk{position:absolute;top:9px;left:9px;z-index:3}
+/* Degradado de profundidad al pie de la foto */
+.fiw::after{content:'';position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(180deg,transparent,rgba(2,10,22,.5));pointer-events:none;z-index:1}
+/* Brillo que barre la tarjeta al hover */
+.fiw::before{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.13),transparent);transform:skewX(-20deg);transition:left .65s ease;z-index:2;pointer-events:none}
+.fc:hover .fiw::before{left:135%}
+/* Animación de entrada al scroll */
+.rv{opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s ease}
+.rv.vis{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+/* Skeleton loaders */
+.sk{background:var(--sf);border:1px solid var(--bd);border-radius:16px;overflow:hidden}
+.ski{width:100%;aspect-ratio:4/3;background:linear-gradient(90deg,var(--sf2) 25%,#103052 37%,var(--sf2) 63%);background-size:400% 100%;animation:skp 1.4s ease infinite}
+.skl{height:13px;border-radius:6px;margin:13px 14px 0;width:68%;background:linear-gradient(90deg,var(--sf2) 25%,#103052 37%,var(--sf2) 63%);background-size:400% 100%;animation:skp 1.4s ease infinite}
+.skl.s2{width:42%;margin-bottom:16px}
+@keyframes skp{0%{background-position:100% 0}100%{background-position:-100% 0}}
+/* Franja de confianza */
+.trust{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 34px;padding:16px 1.2rem;background:linear-gradient(180deg,rgba(0,212,180,.05),transparent),var(--sf);border-bottom:1px solid var(--bd)}
+.titem{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--tx2);font-weight:600;white-space:nowrap}
+.titem b{color:var(--teal);font-family:'Sora',sans-serif;font-weight:800}
+.titem .tic{font-size:16px}
+/* Botón WhatsApp flotante */
+.wafloat{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#25d366,#1ebe5d);display:flex;align-items:center;justify-content:center;z-index:150;box-shadow:0 6px 24px rgba(37,211,102,.4),0 2px 8px rgba(0,0,0,.4);transition:transform .2s}
+.wafloat:hover{transform:scale(1.08)}
+.wafloat::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid rgba(37,211,102,.45);animation:wfp 2.2s ease-out infinite}
+@keyframes wfp{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.35);opacity:0}}
+/* Footer profesional */
+.foot{padding:0;margin-top:1rem;background:var(--sf);border-top:1px solid var(--bd);font-size:13px;color:var(--tx3);text-align:left}
+.fcols{display:grid;grid-template-columns:1fr;gap:1.8rem;max-width:1100px;margin:0 auto;padding:2.4rem 1.4rem 1.8rem}
+@media(min-width:700px){.fcols{grid-template-columns:1.3fr 1fr 1fr}}
+.fcol p{line-height:1.7;margin-top:8px;max-width:300px}
+.fbrand{font-family:'Sora',sans-serif;font-size:16px;font-weight:800;color:var(--tx);margin-top:8px}
+.fbrand span{color:var(--teal)}
+.fcol-t{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:12px}
+.flink{display:block;color:var(--tx2);text-decoration:none;padding:5px 0;font-weight:600;transition:color .2s}
+.flink:hover{color:var(--teal)}
+.fwa{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#25d366,#1ebe5d);color:#fff;font-weight:700;text-decoration:none;border-radius:10px;padding:10px 18px;font-size:13px;margin-bottom:10px}
+.fbase{border-top:1px solid var(--bd);text-align:center;padding:1.1rem;font-size:11.5px;color:var(--tx3)}
 </style>
 </head>
 <body>
 <div class="topstrip">DISTRIBUIDOR OFICIAL</div>
 <nav class="sitenav">
   <div class="snlinks">
-    <a class="snlink active" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">Inicio</a>
-    <a class="snlink" href="#" onclick="document.getElementById('sec-p').scrollIntoView({behavior:'smooth'});return false">Catálogo</a>
-    <a class="snlink" href="#" onclick="switchTab('a');document.getElementById('sec-a').scrollIntoView({behavior:'smooth'});return false">Accesorios</a>
-    <a class="snlink" href="#" onclick="switchTab('b');document.querySelector('.tabs').scrollIntoView({behavior:'smooth'});return false">Blog</a>
+    <a class="snlink active" id="nav-i" href="#" onclick="setNav('nav-i');window.scrollTo({top:0,behavior:'smooth'});return false">Inicio</a>
+    <a class="snlink" id="nav-c" href="#" onclick="switchTab('p');document.querySelector('.tabs').scrollIntoView({behavior:'smooth'});return false">Catálogo</a>
+    <a class="snlink" id="nav-a" href="#" onclick="switchTab('a');document.querySelector('.tabs').scrollIntoView({behavior:'smooth'});return false">Accesorios</a>
+    <a class="snlink" id="nav-b" href="#" onclick="switchTab('b');document.querySelector('.tabs').scrollIntoView({behavior:'smooth'});return false">Blog</a>
     <a class="snlink" href="#" onclick="var w=HYGDB&&HYGDB.whatsapp?HYGDB.whatsapp:'523310934314';window.open('https://wa.me/'+w+'?text='+encodeURIComponent('Hola Doctor Disco! Me gustaría obtener más información.'),'_blank');return false">Contacto</a>
   </div>
 </nav>
@@ -219,6 +279,12 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
   </div>
   <div class="sh"><span>Explorar</span><div class="sa"></div></div>
 </section>
+<div class="trust">
+  <div class="titem"><span class="tic">🐠</span><b id="t-cnt">17+</b>&nbsp;variedades de disco</div>
+  <div class="titem"><span class="tic">✈️</span>Importación directa</div>
+  <div class="titem"><span class="tic">🏅</span>Distribuidor Oficial Hygger</div>
+  <div class="titem"><span class="tic">💬</span>Atención personalizada</div>
+</div>
 <div class="tabs">
   <button class="tab on" id="tab-p" onclick="switchTab('p')">Peces</button>
   <button class="tab" id="tab-a" onclick="switchTab('a')">Accesorios</button>
@@ -229,7 +295,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
     <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--tx2)">Disponibles hoy</span><span class="fbdg" id="cnt-p">...</span></div>
     <input id="fish-search" type="search" placeholder="Buscar pez..." style="font-size:14px;padding:7px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--sf2);color:var(--tx);outline:none;width:100%" oninput="filterFish(this.value)">
   </div>
-  <div id="fish-list"><div class="ctr"><div class="spin"></div><p>Cargando...</p></div></div>
+  <div id="fish-list"><div class="fgrid"><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div></div></div>
 </div>
 <div id="sec-a" style="display:none">
   <div class="fbar"><span style="font-size:13px;color:var(--tx2)">Productos Hygger</span><span class="fbdg" id="cnt-a">...</span></div>
@@ -243,10 +309,27 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
   <div class="bgrid" id="blog-list"><div class="ctr"><div class="spin"></div><p>Cargando...</p></div></div>
 </div>
 <div class="foot">
-  <img src="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e" style="width:40px;height:40px;object-fit:contain;opacity:.5;display:block;margin:0 auto 8px">
-  <strong style="color:var(--teal)">Doctor Disco - Premium Care</strong><br>
-  Distribuidor Oficial Hygger - Catalogo actualizado en tiempo real
+  <div class="fcols">
+    <div class="fcol">
+      <img src="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e" style="width:54px;height:54px;object-fit:contain" loading="lazy" alt="Doctor Disco">
+      <div class="fbrand">Doctor Disco <span>· Premium Care</span></div>
+      <p>Peces disco de importación de la más alta calidad y accesorios Hygger para tu acuario. Expertise · Health · Community.</p>
+    </div>
+    <div class="fcol">
+      <div class="fcol-t">Explora</div>
+      <a class="flink" href="#" onclick="switchTab('p');document.querySelector('.tabs').scrollIntoView({behavior:'smooth'});return false">Peces disco</a>
+      <a class="flink" href="#" onclick="switchTab('a');document.querySelector('.tabs').scrollIntoView({behavior:'smooth'});return false">Accesorios Hygger</a>
+      <a class="flink" href="#" onclick="switchTab('b');document.querySelector('.tabs').scrollIntoView({behavior:'smooth'});return false">Blog y guías</a>
+    </div>
+    <div class="fcol">
+      <div class="fcol-t">Contacto</div>
+      <a class="fwa" id="foot-wa" href="https://wa.me/523310934314" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.546 5.877L0 24l6.303-1.519A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.502-5.2-1.378l-.373-.22-3.742.902.944-3.63-.243-.374A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Escríbenos por WhatsApp</a>
+      <p>Catálogo actualizado en tiempo real con disponibilidad y precios al momento.</p>
+    </div>
+  </div>
+  <div class="fbase">© Doctor Disco — Premium Care · Distribuidor Oficial Hygger</div>
 </div>
+<a class="wafloat" id="wa-float" href="https://wa.me/523310934314?text=Hola%20Doctor%20Disco!%20Me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n." target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.546 5.877L0 24l6.303-1.519A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.502-5.2-1.378l-.373-.22-3.742.902.944-3.63-.243-.374A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg></a>
 <div class="lb" id="lb" onclick="closeLb()">
   <button class="lbcl" onclick="closeLb()">×</button>
   <button class="lbnav lbprev" id="lb-prev" onclick="event.stopPropagation();lbNav(-1)" style="display:none">&#8249;</button>
@@ -306,6 +389,9 @@ function getStock(cid,d){
   return Math.max(0,n);
 }
 
+function setNav(id){
+  document.querySelectorAll('.snlink').forEach(function(a){a.classList.toggle('active',a.id===id);});
+}
 function switchTab(t){
   document.getElementById('sec-p').style.display=t==='p'?'block':'none';
   document.getElementById('sec-a').style.display=t==='a'?'block':'none';
@@ -313,12 +399,25 @@ function switchTab(t){
   document.getElementById('tab-p').classList.toggle('on',t==='p');
   document.getElementById('tab-a').classList.toggle('on',t==='a');
   document.getElementById('tab-b').classList.toggle('on',t==='b');
+  setNav(t==='p'?'nav-c':t==='a'?'nav-a':'nav-b');
   if(t==='a')renderAcc();
   if(t==='b')renderBlog();
 }
 
+// Animación de entrada al hacer scroll
+var revObs=('IntersectionObserver' in window)?new IntersectionObserver(function(es){
+  es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');revObs.unobserve(e.target);}});
+},{threshold:.08,rootMargin:'0px 0px -20px 0px'}):null;
+function revealAll(){
+  var els=document.querySelectorAll('.rv:not(.vis)');
+  if(!revObs){els.forEach(function(el){el.classList.add('vis');});return;}
+  els.forEach(function(el){revObs.observe(el);});
+}
+
 function renderFish(){
   if(!DB)return;
+  var tc=document.getElementById('t-cnt');
+  if(tc)tc.textContent=DB.catalogo.length+'+';
   var disp=DB.catalogo.filter(function(c){return getStock(c.id,DB)>0&&(!searchTerm||c.nombre.toLowerCase().indexOf(searchTerm)>=0);});
   document.getElementById('cnt-p').textContent=disp.length+' variedad'+(disp.length!==1?'es':'');
   var el=document.getElementById('fish-list');
@@ -326,19 +425,20 @@ function renderFish(){
   var h='<div class="fgrid">';
   disp.forEach(function(cat){
     var st=getStock(cat.id,DB),imgs=Array.isArray(IMGS[cat.id])?IMGS[cat.id]:IMGS[cat.id]?[IMGS[cat.id]]:[],img=imgs[0]||'';
-    var stTag=st<=2?'<span class="slo">Ultimos '+st+'</span>':'<span class="sok">'+st+' disp.</span>';
+    var stTag='<span class="stk">'+(st<=2?'<span class="slo">Ultimos '+st+'</span>':'<span class="sok">'+st+' disp.</span>')+'</span>';
     var waMsg=encodeURIComponent('Hola Doctor Disco!\nMe interesa: '+cat.nombre+' ('+cat.talla+')\nPrecio: '+fmt(cat.precio)+'\nEsta disponible?');
-    h+='<div class="fc">';
+    h+='<div class="fc rv">';
     if(img){
-      var gal=imgs.length>1?'<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;font-weight:600;border-radius:10px;padding:2px 8px">'+imgs.length+' fotos</div>':'';
-      h+='<div class="fiw"><img class="fimg" src="'+img+'" alt="'+cat.nombre+'" data-imgs="'+encodeURIComponent(JSON.stringify(imgs))+'"><div class="zic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg></div>'+gal+'</div>';
+      var gal=imgs.length>1?'<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;font-weight:600;border-radius:10px;padding:2px 8px;z-index:2">'+imgs.length+' fotos</div>':'';
+      h+='<div class="fiw"><img class="fimg" src="'+img+'" alt="'+cat.nombre+'" loading="lazy" decoding="async" data-imgs="'+encodeURIComponent(JSON.stringify(imgs))+'"><div class="zic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg></div>'+gal+stTag+'</div>';
     }
-    else{h+='<div class="fph"><img src="'+LI+'" style="width:50px;height:50px;object-fit:contain;opacity:.25"></div>';}
-    h+='<div class="fbody"><div class="fname">'+cat.nombre+'</div><div class="ftalla">Talla: '+cat.talla+'</div><div class="fbot"><div class="fprice">'+fmt(cat.precio)+'</div>'+stTag+'</div>';
+    else{h+='<div class="fiw"><div class="fph"><img src="'+LI+'" style="width:50px;height:50px;object-fit:contain;opacity:.25" loading="lazy"></div>'+stTag+'</div>';}
+    h+='<div class="fbody"><div class="fname">'+cat.nombre+'</div><div class="ftalla">Talla: '+cat.talla+'</div><div class="fbot"><div class="fprice">'+fmt(cat.precio)+'</div></div>';
     h+='<a href="https://wa.me/'+(HYGDB.whatsapp||'523310934314')+'?text='+waMsg+'" target="_blank" class="wabtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.546 5.877L0 24l6.303-1.519A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.502-5.2-1.378l-.373-.22-3.742.902.944-3.63-.243-.374A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Me interesa</a>';
     h+='</div></div>';
   });
   el.innerHTML=h+'</div>';
+  revealAll();
 }
 
 var searchTerm='';
@@ -407,8 +507,8 @@ function renderAcc(){
       var minPrice=prices.length?Math.min.apply(null,prices):0;
       var img=(p.imgs||[])[0]||'';
       var stTag=totalStock>0?'<span style="color:var(--green);font-size:12px">'+totalStock+' en stock</span>':'<span style="color:var(--tx3);font-size:12px">Consultar</span>';
-      h+='<div class="ac" data-id="'+p.id+'">';
-      if(img){h+='<img class="acimg" src="'+img+'" alt="'+p.nombre+'">';}
+      h+='<div class="ac rv" data-id="'+p.id+'">';
+      if(img){h+='<img class="acimg" src="'+img+'" alt="'+p.nombre+'" loading="lazy" decoding="async">';}
       else{h+='<div class="acph"><div style="font-size:32px;opacity:.3">📦</div></div>';}
       h+='<div class="acbody"><span class="acmod">'+(p.modelo||'')+'</span><div class="acname">'+p.nombre+'</div>';
       if(minPrice){h+='<div class="acprice">Desde $'+minPrice.toLocaleString('es-MX')+'</div>';}
@@ -416,6 +516,7 @@ function renderAcc(){
     });
   });
   document.getElementById('acc-list').innerHTML=h;
+  revealAll();
 }
 
 var BLOG_MAP={};
@@ -432,7 +533,7 @@ function renderBlog(){
   posts.forEach(function(p){
     var dateStr='';
     if(p.fecha){var d=new Date(p.fecha+'T12:00:00');dateStr=d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});}
-    h+='<div class="bcard" onclick="openBlogPost(\''+p.id+'\')">';
+    h+='<div class="bcard rv" onclick="openBlogPost(\''+p.id+'\')">';
     h+='<div class="bimgw">';
     if(p.coverUrl){h+='<img class="bimg" src="'+p.coverUrl+'" alt="'+p.titulo+'" loading="lazy">';}
     else{h+='<div class="biph"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(0,212,180,.3)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>';}
@@ -445,6 +546,7 @@ function renderBlog(){
     h+='</div></div>';
   });
   el.innerHTML=h;
+  revealAll();
 }
 
 function openBlogPost(id){
@@ -475,13 +577,10 @@ function openBlogPost(id){
   }
   document.getElementById('blog-panel').classList.add('open');
   document.body.style.overflow='hidden';
+  overlayOpen();
 }
 
-function closeBlogPanel(){
-  document.getElementById('blog-panel').classList.remove('open');
-  document.getElementById('bp-iframe').src='';
-  document.body.style.overflow='';
-}
+function closeBlogPanel(){overlayClose();}
 
 function openPanel(id){
   var prods=HYGDB.productos||[];
@@ -508,8 +607,24 @@ function openPanel(id){
   document.getElementById('pan-wa').href='https://wa.me/'+wa+'?text='+waMsg;
   document.getElementById('panel').classList.add('open');
   document.body.style.overflow='hidden';
+  overlayOpen();
 }
-function closePanel(){document.getElementById('panel').classList.remove('open');document.body.style.overflow='';}
+function closePanel(){overlayClose();}
+
+// ── El botón atrás del navegador cierra paneles, no la página ──
+function domCloseAll(){
+  document.getElementById('lb').classList.remove('open');
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('blog-panel').classList.remove('open');
+  document.getElementById('bp-iframe').src='';
+  document.body.style.overflow='';
+}
+window.addEventListener('popstate',domCloseAll);
+function overlayOpen(){history.pushState({dd:1},'');}
+function overlayClose(){
+  if(history.state&&history.state.dd){history.back();}
+  else{domCloseAll();}
+}
 
 var lbImgs=[],lbIdx=0;
 function lbShow(i){
@@ -534,11 +649,12 @@ document.addEventListener('click',function(e){
     document.getElementById('lb').classList.add('open');
     document.body.style.overflow='hidden';
     lbShow(0);
+    overlayOpen();
   }
 });
-function closeLb(){document.getElementById('lb').classList.remove('open');document.body.style.overflow='';}
+function closeLb(){overlayClose();}
 document.addEventListener('click',function(e){var ac=e.target.closest('.ac');if(ac&&ac.dataset.id)openPanel(ac.dataset.id);});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeLb();closePanel();closeBlogPanel();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')overlayClose();});
 
 // Load from Firebase using REST API - no SDK needed, avoids all module issues
 var PROJECT='peces-disco';
@@ -575,32 +691,58 @@ function fetchDoc(name,cb){
   }).catch(function(e){cb(e,null);});
 }
 
+// Hashes para evitar re-renderizar si los datos no cambiaron
+var hData='',hImgs='',hHyg='',hBlog='';
 function loadAll(){
   fetchDoc('data',function(err,d){
     if(err){
-      document.getElementById('fish-list').innerHTML='<div class="err">Error cargando datos: '+JSON.stringify(err)+'</div>';
+      if(!DB)document.getElementById('fish-list').innerHTML='<div class="err">Error cargando datos: '+JSON.stringify(err)+'</div>';
       return;
     }
-    DB=d;if(!DB.bajas)DB.bajas=[];
-    renderFish();
+    var h1=JSON.stringify(d);
+    if(h1!==hData){hData=h1;DB=d;if(!DB.bajas)DB.bajas=[];renderFish();}
     // Load images
     fetchDoc('images',function(e2,imgs){
-      if(!e2&&imgs){IMGS=imgs;Object.keys(IMGS).forEach(function(k){if(typeof IMGS[k]==='string')IMGS[k]=[IMGS[k]];});renderFish();populateHeroFish();}
+      if(!e2&&imgs){
+        var h2=JSON.stringify(imgs);
+        if(h2!==hImgs){hImgs=h2;IMGS=imgs;Object.keys(IMGS).forEach(function(k){if(typeof IMGS[k]==='string')IMGS[k]=[IMGS[k]];});renderFish();populateHeroFish();}
+      }
     });
     // Load acc stock
     fetchDoc('hygger',function(e3,hyg){
-      if(!e3&&hyg){HYGDB=hyg;if(document.getElementById('sec-a').style.display!=='none')renderAcc();}
+      if(!e3&&hyg){
+        var h3=JSON.stringify(hyg);
+        if(h3!==hHyg){
+          hHyg=h3;HYGDB=hyg;
+          if(HYGDB.whatsapp){
+            var wf=document.getElementById('wa-float');
+            if(wf)wf.href='https://wa.me/'+HYGDB.whatsapp+'?text='+encodeURIComponent('Hola Doctor Disco! Me gustaría más información.');
+            var fw=document.getElementById('foot-wa');
+            if(fw)fw.href='https://wa.me/'+HYGDB.whatsapp;
+          }
+          if(document.getElementById('sec-a').style.display!=='none')renderAcc();
+        }
+      }
     });
     // Load blog
     fetchDoc('blog',function(e4,blog){
-      if(!e4&&blog){BLOGDB=blog;if(!BLOGDB.posts)BLOGDB.posts=[];if(document.getElementById('sec-b').style.display!=='none')renderBlog();}
+      if(!e4&&blog){
+        var h4=JSON.stringify(blog);
+        if(h4!==hBlog){hBlog=h4;BLOGDB=blog;if(!BLOGDB.posts)BLOGDB.posts=[];if(document.getElementById('sec-b').style.display!=='none')renderBlog();}
+      }
     });
   });
 }
 
 loadAll();
-// Refresh every 30 seconds
-setInterval(loadAll,30000);
+// Refresco cada 30s, solo si la pestaña está visible y no hay paneles abiertos
+setInterval(function(){
+  if(document.hidden)return;
+  if(document.querySelector('.panel.open'))return;
+  if(document.getElementById('lb').classList.contains('open'))return;
+  if(document.activeElement===document.getElementById('fish-search'))return;
+  loadAll();
+},30000);
 </script>
 </body>
 </html>

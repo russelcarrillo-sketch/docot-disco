@@ -2,8 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Doctor Disco</title>
+<meta name="theme-color" content="#0b1929">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Doctor Disco">
+<link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e">
+<link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -103,6 +111,11 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 </head>
 <body>
 <div id="sync-bar" class="sync">🔄 Guardando...</div>
+<div id="err-bar" style="display:none;position:sticky;top:0;z-index:101;background:rgba(255,107,107,.14);border-bottom:1px solid var(--rbd);padding:9px 1rem;font-size:13px;color:var(--red);align-items:center;justify-content:space-between;gap:10px">
+  <span>⚠️ No se pudo guardar. Revisa tu conexión.</span>
+  <button onclick="retrySave()" style="background:var(--rbg);border:1px solid var(--rbd);color:var(--red);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Reintentar</button>
+</div>
+<div id="off-bar" style="display:none;position:sticky;top:0;z-index:101;background:rgba(255,198,109,.12);border-bottom:1px solid var(--abd);padding:7px 1rem;font-size:12px;color:var(--amber);text-align:center;font-weight:600">📡 Sin conexión — los cambios no se guardarán</div>
 <div id="app">
 
 <!-- DASHBOARD -->
@@ -130,6 +143,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
       <div class="m"><div class="ml">Gastos del mes</div><div class="mv" id="d-gmes" style="color:var(--red)">$0</div></div>
       <div class="m"><div class="ml">Peces en stock</div><div class="mv" id="d-stock" style="color:var(--teal)">0</div></div>
       <div class="m"><div class="ml">Gastos operativos</div><div class="mv" id="d-gop">$0</div></div>
+      <div class="m wide"><div class="ml">📊 Ganancia del mes (ventas – costo – gastos op.)</div><div class="mv" id="d-ganmes" style="font-size:20px">$0</div></div>
     </div>
     <div id="d-ap" style="display:none">
       <div class="div"></div>
@@ -141,6 +155,28 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
         <div class="m"><div class="ml">💰 Total acordado</div><div class="mv" id="d-ap-total">$0</div></div>
       </div>
       <div id="d-ap-list"></div>
+    </div>
+    <div id="d-lowstock" style="display:none">
+      <div class="div"></div>
+      <div class="sec">⚠️ Stock bajo</div>
+      <div class="card" id="d-lowstock-list" style="font-size:13px;line-height:2"></div>
+    </div>
+    <div class="div"></div>
+    <div class="sec">Ventas últimos 6 meses</div>
+    <div class="card">
+      <div id="d-chart" style="display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:8px"></div>
+    </div>
+    <div id="d-top" style="display:none">
+      <div class="div"></div>
+      <div class="sec">🏆 Más vendidos</div>
+      <div class="card" id="d-top-list"></div>
+    </div>
+    <div class="div"></div>
+    <div class="sec">Ajustes y datos</div>
+    <div class="card">
+      <button class="btn pr w" onclick="downloadBackup()">⬇️ Descargar respaldo completo</button>
+      <button class="btn df w" onclick="archiveOldYears()">📦 Archivar años anteriores</button>
+      <button class="btn da w" onclick="doLogout()" style="margin-bottom:0">Cerrar sesión</button>
     </div>
   </div>
 </div>
@@ -241,8 +277,9 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
       <p style="color:var(--tx3);font-size:13px;margin-top:4px">Administración</p>
     </div>
     <div class="card">
-      <div class="fld"><label class="lbl">Contraseña</label><input type="password" id="login-pass" placeholder="Ingresa tu contraseña" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <button class="btn so w" onclick="doLogin()">Entrar</button>
+      <div class="fld"><label class="lbl">Correo</label><input type="email" id="login-email" placeholder="tu@correo.com" autocomplete="username"></div>
+      <div class="fld"><label class="lbl">Contraseña</label><input type="password" id="login-pass" placeholder="Ingresa tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn so w" id="login-btn" onclick="doLogin()">Entrar</button>
       <div id="login-err" style="display:none;color:var(--red);text-align:center;font-size:13px;margin-top:10px">Contraseña incorrecta</div>
     </div>
   </div>
@@ -362,7 +399,17 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 
 <!-- HIST VENTAS -->
 <div class="page" id="pg-hv">
-  <div class="ph"><button class="back" onclick="go('pg-ventas')">←</button><div><h1>Historial de ventas</h1></div></div>
+  <div class="ph"><button class="back" onclick="go('pg-ventas')">←</button><div style="flex:1"><h1>Historial de ventas</h1></div><button class="btn pr" style="min-height:36px;padding:7px 12px;font-size:12px;flex-shrink:0" onclick="exportVentasCSV()">⬇️ CSV</button></div>
+  <div class="p">
+    <div class="g2" style="margin-bottom:8px">
+      <input id="hv-q" type="search" placeholder="Buscar cliente..." oninput="renderHV()">
+      <select id="hv-mes" onchange="renderHV()"><option value="">Todos los meses</option></select>
+    </div>
+    <div class="card" id="hv-tot" style="display:flex;justify-content:space-between;align-items:center;padding:.7rem 1rem;margin-bottom:10px">
+      <span style="font-size:13px;color:var(--tx2)" id="hv-tot-n">0 ventas</span>
+      <strong style="color:var(--green)" id="hv-tot-m">$0</strong>
+    </div>
+  </div>
   <div class="p" id="hv-list"></div>
 </div>
 
@@ -422,7 +469,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 
 <!-- GASTOS -->
 <div class="page" id="pg-gastos">
-  <div class="ph"><div><h1>Gastos</h1></div></div>
+  <div class="ph"><div style="flex:1"><h1>Gastos</h1></div><button class="btn pr" style="min-height:36px;padding:7px 12px;font-size:12px;flex-shrink:0" onclick="exportGastosCSV()">⬇️ CSV</button></div>
   <div class="p">
     <div class="toast" id="toast-g">✓ Gasto registrado</div>
     <div class="mg">
@@ -492,6 +539,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {getFirestore,doc,setDoc,getDoc} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import {getStorage,ref,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const fb = initializeApp({
   apiKey:"AIzaSyA0C0UR6-R4S_Cp86yEEfj1COLkY5oFPn4",
@@ -508,6 +556,8 @@ const IDOC = doc(db,'negocio','images');
 const ADOC = doc(db,'negocio','accesorios2');
 const HDOC = doc(db,'negocio','hygger');
 const BDOC = doc(db,'negocio','blog');
+const BKDOC = doc(db,'negocio','respaldo');
+const auth = getAuth(fb);
 
 // Sistema Hygger migrado a Firestore
 
@@ -577,12 +627,96 @@ async function load(){
   sync(false);
   renderDash();
   document.getElementById('nv-f').value=hoy();
+  dailyBackup();
 }
-async function save(){sync(true);try{await setDoc(DDOC,DB)}catch(e){console.error(e)}sync(false)}
-async function saveImgs(){try{await setDoc(IDOC,IMGS)}catch(e){console.error(e)}}
-async function saveAcc(){try{await setDoc(ADOC,ACCDB)}catch(e){console.error(e)}}
-async function saveHyg(){try{await setDoc(HDOC,HYGDB)}catch(e){console.error(e)}}
-async function saveBlog(){try{await setDoc(BDOC,BLOGDB)}catch(e){console.error(e)}}
+// Indicador de conexión
+function updOnline(){document.getElementById('off-bar').style.display=navigator.onLine?'none':'block';}
+window.addEventListener('online',updOnline);
+window.addEventListener('offline',updOnline);
+updOnline();
+// ── GUARDADO CON ERRORES VISIBLES ──
+let lastFailedSave=null;
+function showSaveErr(fn){
+  lastFailedSave=fn;
+  document.getElementById('err-bar').style.display='flex';
+}
+function hideSaveErr(){lastFailedSave=null;document.getElementById('err-bar').style.display='none';}
+window.retrySave=function(){const f=lastFailedSave;hideSaveErr();if(f)f();};
+async function trySave(docRef,data,fn){
+  sync(true);
+  try{await setDoc(docRef,data);hideSaveErr();}
+  catch(e){console.error(e);showSaveErr(fn);}
+  sync(false);
+}
+async function save(){await trySave(DDOC,DB,save)}
+async function saveImgs(){await trySave(IDOC,IMGS,saveImgs)}
+async function saveAcc(){await trySave(ADOC,ACCDB,saveAcc)}
+async function saveHyg(){await trySave(HDOC,HYGDB,saveHyg)}
+async function saveBlog(){await trySave(BDOC,BLOGDB,saveBlog)}
+
+// ── RESPALDO AUTOMÁTICO DIARIO (1 escritura al día) ──
+async function dailyBackup(){
+  const today=hoy();
+  if(localStorage.getItem('dd-bk')===today)return;
+  try{
+    await setDoc(BKDOC,{fecha:today,data:JSON.stringify(DB),imgs:JSON.stringify(IMGS),hygger:JSON.stringify(HYGDB),blog:JSON.stringify(BLOGDB)});
+    localStorage.setItem('dd-bk',today);
+  }catch(e){console.error('Backup:',e)}
+}
+
+// ── DESCARGAR RESPALDO MANUAL ──
+window.downloadBackup=function(){
+  const blob=new Blob([JSON.stringify({fecha:new Date().toISOString(),data:DB,images:IMGS,hygger:HYGDB,blog:BLOGDB},null,1)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='respaldo-doctordisco-'+hoy()+'.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+// ── ARCHIVAR AÑOS ANTERIORES ──
+window.archiveOldYears=async function(){
+  const y=new Date().getFullYear(),corte=y+'-01-01';
+  const oldV=DB.ventas.filter(v=>v.fecha<corte);
+  const oldI=DB.importaciones.filter(i=>i.fecha<corte);
+  const oldG=DB.gastos.filter(g=>g.fecha<corte);
+  const oldB=(DB.bajas||[]).filter(b=>(b.fecha||'')<corte);
+  const oldA=DB.apartados.filter(a=>a.status!=='pendiente'&&(a.fecha||'')<corte);
+  const total=oldV.length+oldI.length+oldG.length+oldB.length+oldA.length;
+  if(!total){alert('No hay movimientos de años anteriores para archivar.');return;}
+  if(!confirm('Se archivarán '+total+' movimientos anteriores a '+y+' (ventas, importaciones, gastos, bajas y apartados cerrados).\n\nEl stock actual se conserva intacto mediante un "Saldo inicial". Los totales del dashboard reflejarán solo '+y+' en adelante.\n\nSe guarda una copia completa en el documento de archivo. ¿Continuar?'))return;
+  // Stock neto que aporta el periodo viejo, por variedad
+  const net={};
+  oldI.forEach(i=>i.items.forEach(it=>{net[it.catId]=(net[it.catId]||0)+it.cantidad}));
+  oldV.forEach(v=>v.items.forEach(it=>{net[it.catId]=(net[it.catId]||0)-it.cantidad}));
+  oldB.forEach(b=>{net[b.catId]=(net[b.catId]||0)-b.cantidad});
+  const saldoItems=Object.keys(net).filter(cid=>net[cid]>0).map(cid=>{
+    const c=DB.catalogo.find(x=>x.id===cid)||{};
+    return {catId:cid,nombre:c.nombre||cid,cantidad:net[cid],costo:c.costo||0};
+  });
+  sync(true);
+  try{
+    // 1. Copia de archivo
+    const ARCDOC=doc(db,'negocio','archivo_'+(y-1));
+    await setDoc(ARCDOC,{creado:hoy(),ventas:JSON.stringify(oldV),importaciones:JSON.stringify(oldI),gastos:JSON.stringify(oldG),bajas:JSON.stringify(oldB),apartados:JSON.stringify(oldA)});
+    // 2. Limpiar datos vivos + saldo inicial
+    DB.ventas=DB.ventas.filter(v=>v.fecha>=corte);
+    DB.importaciones=DB.importaciones.filter(i=>i.fecha>=corte);
+    DB.gastos=DB.gastos.filter(g=>g.fecha>=corte);
+    DB.bajas=(DB.bajas||[]).filter(b=>(b.fecha||'')>=corte);
+    DB.apartados=DB.apartados.filter(a=>a.status==='pendiente'||(a.fecha||'')>=corte);
+    if(saldoItems.length)DB.importaciones.unshift({id:uid(),fecha:corte,notas:'Saldo inicial '+y+' (archivado automático)',items:saldoItems});
+    await setDoc(DDOC,DB);
+    sync(false);
+    alert('✓ Archivado completo. '+total+' movimientos guardados en "archivo_'+(y-1)+'".');
+    renderDash();
+  }catch(e){
+    sync(false);
+    console.error(e);
+    alert('Error al archivar: '+e.message+'\nNo se modificó nada.');
+    location.reload();
+  }
+};
 
 // ── BLOG ──────────────────────────────────────────────────────
 let blogCoverFile=null, blogPdfFile=null;
@@ -762,6 +896,41 @@ function renderDash(){
   } else {
     ab.style.display='none';
   }
+  // Ganancia del mes
+  const cVendMes=DB.ventas.filter(v=>v.fecha.startsWith(mes)).reduce((s,v)=>s+v.items.reduce((ss,it)=>{const c=DB.catalogo.find(x=>x.id===it.catId);return ss+(c?c.costo:0)*it.cantidad},0),0);
+  const gOpMes=DB.gastos.filter(g=>g.fecha.startsWith(mes)).reduce((s,g)=>s+g.monto,0);
+  const ganMes=vMes-cVendMes-gOpMes;
+  const gm=document.getElementById('d-ganmes');
+  gm.textContent=fmt(ganMes);gm.style.color=ganMes>=0?'var(--green)':'var(--red)';
+  // Stock bajo
+  const low=DB.catalogo.map(c=>({c,st:getStock(c.id)})).filter(x=>x.st>0&&x.st<=2);
+  const lw=document.getElementById('d-lowstock');
+  if(low.length){
+    lw.style.display='block';
+    document.getElementById('d-lowstock-list').innerHTML=low.map(x=>`<div style="display:flex;justify-content:space-between"><span>${x.c.nombre} <span style="color:var(--tx3)">${x.c.talla}</span></span><span style="color:var(--amber);font-weight:700">${x.st} restante${x.st>1?'s':''}</span></div>`).join('');
+  } else lw.style.display='none';
+  // Gráfica de ventas últimos 6 meses
+  const months=[];
+  for(let k=5;k>=0;k--){const d2=new Date();d2.setDate(1);d2.setMonth(d2.getMonth()-k);months.push(d2.toISOString().slice(0,7));}
+  const vals=months.map(m=>DB.ventas.filter(v=>v.fecha.startsWith(m)).reduce((s,v)=>s+v.total,0));
+  const mx=Math.max(...vals,1);
+  const MN=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  document.getElementById('d-chart').innerHTML=months.map((m,i)=>{
+    const bh=Math.max(4,Math.round(vals[i]/mx*86));
+    const lbl=MN[parseInt(m.slice(5,7),10)-1];
+    const cur=m===mes;
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end"><div style="font-size:9px;color:var(--tx2)">${vals[i]?'$'+(vals[i]>=1000?Math.round(vals[i]/1000)+'k':vals[i]):''}</div><div style="width:100%;max-width:38px;height:${bh}px;background:${cur?'var(--teal)':'var(--sf2)'};border:1px solid ${cur?'var(--teal)':'var(--bd2)'};border-radius:6px 6px 0 0"></div><div style="font-size:10px;color:${cur?'var(--teal)':'var(--tx3)'};font-weight:${cur?'700':'400'}">${lbl}</div></div>`;
+  }).join('');
+  // Top 5 más vendidos
+  const cnt={};
+  DB.ventas.forEach(v=>v.items.forEach(it=>{cnt[it.nombre]=(cnt[it.nombre]||0)+it.cantidad;}));
+  const top=Object.keys(cnt).map(n=>({n,q:cnt[n]})).sort((a,b)=>b.q-a.q).slice(0,5);
+  const tp=document.getElementById('d-top');
+  if(top.length){
+    tp.style.display='block';
+    const mq=top[0].q;
+    document.getElementById('d-top-list').innerHTML=top.map((t,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:5px 0"><span style="font-size:12px;width:16px;color:var(--tx3)">${i+1}.</span><span style="flex:1;font-size:13px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.n}</span><div style="width:80px;height:6px;background:var(--sf2);border-radius:99px;overflow:hidden;flex-shrink:0"><div style="height:100%;width:${Math.round(t.q/mq*100)}%;background:var(--teal);border-radius:99px"></div></div><span style="font-size:12px;color:var(--teal);font-weight:700;width:56px;text-align:right;flex-shrink:0">${t.q} ${t.q>1?'peces':'pez'}</span></div>`).join('');
+  } else tp.style.display='none';
 }
 
 // ── INVENTARIO PECES ───────────────────────────────────────
@@ -1108,11 +1277,56 @@ window.saveVenta=async function(){
   DB.ventas.push({id:uid(),fecha:document.getElementById('v-f').value,clienteNombre:document.getElementById('v-cl').value,items,total:items.reduce((s,i)=>s+i.cantidad*i.precioUnitario,0)});
   await save();toast('toast-v');setTimeout(()=>initVenta(),1500);
 };
-function renderHV(){
+window.renderHV=function(){
   const el=document.getElementById('hv-list');
-  if(!DB.ventas.length){el.innerHTML='<div class="empty"><p>No hay ventas registradas</p></div>';return}
-  el.innerHTML=[...DB.ventas].reverse().map(v=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">${v.clienteNombre||'Sin nombre'}</div><div style="font-size:12px;color:var(--tx3);margin:2px 0 5px">${fdate(v.fecha)}</div>${v.items.map(i=>`<div style="font-size:12px;color:var(--tx2)">${i.cantidad}x ${i.nombre} – ${fmt(i.precioUnitario)}</div>`).join('')}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-left:8px"><strong style="color:var(--green)">${fmt(v.total)}</strong><button onclick="delV('${v.id}')" style="border:1px solid var(--rbd);background:var(--rbg);color:var(--red);border-radius:var(--rs);padding:5px 9px;font-size:12px;cursor:pointer;min-height:34px">🗑</button></div></div></div>`).join('');
+  // Llenar selector de meses (conserva la selección)
+  const sel=document.getElementById('hv-mes');
+  const meses=[...new Set(DB.ventas.map(v=>v.fecha.slice(0,7)))].sort().reverse();
+  const MN=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Todos los meses</option>'+meses.map(m=>`<option value="${m}">${MN[parseInt(m.slice(5,7),10)-1]} ${m.slice(0,4)}</option>`).join('');
+  if(meses.includes(prev))sel.value=prev;
+  // Filtrar
+  const q=(document.getElementById('hv-q').value||'').toLowerCase();
+  const fm=sel.value;
+  const vs=[...DB.ventas].reverse().filter(v=>
+    (!q||(v.clienteNombre||'').toLowerCase().includes(q))&&
+    (!fm||v.fecha.startsWith(fm))
+  );
+  document.getElementById('hv-tot-n').textContent=vs.length+' venta'+(vs.length!==1?'s':'');
+  document.getElementById('hv-tot-m').textContent=fmt(vs.reduce((s,v)=>s+v.total,0));
+  if(!vs.length){el.innerHTML='<div class="empty"><p>No hay ventas que coincidan</p></div>';return}
+  el.innerHTML=vs.map(v=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">${v.clienteNombre||'Sin nombre'}</div><div style="font-size:12px;color:var(--tx3);margin:2px 0 5px">${fdate(v.fecha)}</div>${v.items.map(i=>`<div style="font-size:12px;color:var(--tx2)">${i.cantidad}x ${i.nombre} – ${fmt(i.precioUnitario)}</div>`).join('')}</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-left:8px"><strong style="color:var(--green)">${fmt(v.total)}</strong><button onclick="delV('${v.id}')" style="border:1px solid var(--rbd);background:var(--rbg);color:var(--red);border-radius:var(--rs);padding:5px 9px;font-size:12px;cursor:pointer;min-height:34px">🗑</button></div></div></div>`).join('');
 }
+
+// ── EXPORTAR CSV ──
+function downloadCSV(rows,filename){
+  const csv='\uFEFF'+rows.map(r=>r.map(c=>{
+    c=String(c==null?'':c);
+    return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;
+  }).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+window.exportVentasCSV=function(){
+  if(!DB.ventas.length){alert('No hay ventas para exportar');return;}
+  const rows=[['Fecha','Cliente','Producto','Cantidad','Precio unitario','Importe','Total venta']];
+  [...DB.ventas].reverse().forEach(v=>{
+    v.items.forEach((i,idx)=>{
+      rows.push([v.fecha,v.clienteNombre||'Sin nombre',i.nombre,i.cantidad,i.precioUnitario,i.cantidad*i.precioUnitario,idx===0?v.total:'']);
+    });
+  });
+  downloadCSV(rows,'ventas-doctordisco-'+hoy()+'.csv');
+};
+window.exportGastosCSV=function(){
+  if(!DB.gastos.length){alert('No hay gastos para exportar');return;}
+  const rows=[['Fecha','Categoría','Descripción','Monto']];
+  [...DB.gastos].reverse().forEach(g=>rows.push([g.fecha,g.categoria||'',g.descripcion||'',g.monto]));
+  downloadCSV(rows,'gastos-doctordisco-'+hoy()+'.csv');
+};
 window.delV=async function(id){if(confirm('¿Borrar esta venta?')){DB.ventas=DB.ventas.filter(v=>v.id!==id);await save();renderHV()}};
 
 // ── APARTADOS ──────────────────────────────────────────────
@@ -1208,13 +1422,51 @@ function renderGastos(){
 window.saveGasto=async function(){const desc=document.getElementById('gs-d').value.trim(),m=parseFloat(document.getElementById('gs-m').value)||0;if(!desc||!m)return;DB.gastos.push({id:uid(),descripcion:desc,categoria:document.getElementById('gs-c').value,monto:m,fecha:document.getElementById('gs-f').value});await save();document.getElementById('gs-d').value='';document.getElementById('gs-m').value='';toast('toast-g');renderGastos()};
 window.delG=async function(id){if(confirm('¿Borrar este gasto?')){DB.gastos=DB.gastos.filter(g=>g.id!==id);await save();renderGastos()}};
 
-const APP_PASS='disco2025';
-window.doLogin=function(){
-  const p=document.getElementById('login-pass').value;
-  if(p===APP_PASS){sessionStorage.setItem('dd-auth','1');document.getElementById('pg-login').style.display='none';load();}
-  else{document.getElementById('login-err').style.display='block';setTimeout(()=>document.getElementById('login-err').style.display='none',2000);}
+// ── LOGIN CON FIREBASE AUTH ──
+const AUTH_ERRS={
+  'auth/invalid-credential':'Correo o contraseña incorrectos',
+  'auth/wrong-password':'Contraseña incorrecta',
+  'auth/user-not-found':'No existe ese usuario',
+  'auth/invalid-email':'Correo inválido',
+  'auth/too-many-requests':'Demasiados intentos. Espera unos minutos',
+  'auth/network-request-failed':'Sin conexión a internet',
+  'auth/operation-not-allowed':'Falta activar Email/Password en Firebase Console → Authentication'
 };
-if(sessionStorage.getItem('dd-auth')==='1'){document.getElementById('pg-login').style.display='none';load();}
+function loginErr(msg){
+  const e=document.getElementById('login-err');
+  e.textContent=msg;e.style.display='block';
+  setTimeout(()=>e.style.display='none',4000);
+}
+window.doLogin=async function(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!email||!pass){loginErr('Escribe correo y contraseña');return;}
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Entrando...';
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+    localStorage.setItem('dd-email',email);
+  }catch(e){
+    loginErr(AUTH_ERRS[e.code]||'Error: '+e.code);
+  }
+  btn.disabled=false;btn.textContent='Entrar';
+};
+window.doLogout=async function(){
+  if(!confirm('¿Cerrar sesión?'))return;
+  try{await signOut(auth)}catch(e){console.error(e)}
+  location.reload();
+};
+const savedEmail=localStorage.getItem('dd-email');
+if(savedEmail)document.getElementById('login-email').value=savedEmail;
+let appStarted=false;
+onAuthStateChanged(auth,user=>{
+  if(user){
+    document.getElementById('pg-login').style.display='none';
+    if(!appStarted){appStarted=true;load();}
+  }else{
+    document.getElementById('pg-login').style.display='flex';
+  }
+});
 </script>
 </body>
 </html>

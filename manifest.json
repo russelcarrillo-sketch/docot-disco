@@ -1,0 +1,17 @@
+{
+  "name": "Doctor Disco - Administración",
+  "short_name": "Doctor Disco",
+  "description": "Administración del negocio Doctor Disco",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1929",
+  "theme_color": "#0b1929",
+  "icons": [
+    {
+      "src": "https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
