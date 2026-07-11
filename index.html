@@ -561,7 +561,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {getFirestore,doc,setDoc,getDoc} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {getFirestore,doc,setDoc,getDoc,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import {getStorage,ref,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
@@ -1429,16 +1429,24 @@ window.hacerCorte=async function(){
     +'• Desde hoy empieza el periodo de la nueva importación\n\n¿Hacer el corte?'))return;
   if(!await askPassword('Escribe tu contraseña para ejecutar el Corte #'+num+'.'))return;
   const corteId='corte_'+Date.now();
+  // Variedades que se quedan (con remanente o apartado pendiente) y las que se van
+  const keep=new Set(rem.map(r=>r.catId));
+  DB.apartados.filter(a=>a.status==='pendiente').forEach(a=>a.items.forEach(it=>keep.add(it.catId)));
+  const removed=DB.catalogo.filter(c=>!keep.has(c.id)).map(c=>c.id);
+  const remImgs={};
+  removed.forEach(cid=>{if(IMGS[cid])remImgs[cid]=IMGS[cid];});
   sync(true);
   try{
-    // 1. Guardar detalle completo en documento propio
+    // 1. Guardar detalle completo en documento propio (incluye catálogo y fotos para poder deshacer)
     await setDoc(doc(db,'negocio',corteId),{
       creado:hoy(),
       ventas:JSON.stringify(DB.ventas),
       importaciones:JSON.stringify(DB.importaciones),
       gastos:JSON.stringify(DB.gastos),
       bajas:JSON.stringify(DB.bajas||[]),
-      apartados:JSON.stringify(DB.apartados.filter(a=>a.status!=='pendiente'))
+      apartados:JSON.stringify(DB.apartados.filter(a=>a.status!=='pendiente')),
+      catalogo:JSON.stringify(DB.catalogo),
+      imgsRemovidas:JSON.stringify(remImgs)
     });
     // 2. Resumen ligero en el historial
     if(!DB.cortes)DB.cortes=[];
@@ -1448,9 +1456,6 @@ window.hacerCorte=async function(){
     DB.apartados=DB.apartados.filter(a=>a.status==='pendiente');
     DB.importaciones=rem.length?[{id:uid(),fecha:hoy(),notas:'Remanente del corte #'+num,items:rem.map(r=>({catId:r.catId,nombre:r.nombre,cantidad:r.cantidad,costo:r.costo}))}]:[];
     // 4. Quitar del catálogo las variedades sin remanente ni apartado pendiente
-    const keep=new Set(rem.map(r=>r.catId));
-    DB.apartados.forEach(a=>a.items.forEach(it=>keep.add(it.catId)));
-    const removed=DB.catalogo.filter(c=>!keep.has(c.id)).map(c=>c.id);
     DB.catalogo=DB.catalogo.filter(c=>keep.has(c.id));
     DB.periodoInicio=hoy();
     await setDoc(DDOC,DB);
@@ -1472,7 +1477,7 @@ window.renderCortes=function(){
   const el=document.getElementById('cortes-list');
   const cs=[...(DB.cortes||[])].reverse();
   if(!cs.length){el.innerHTML='<div class="empty"><p>Aún no has hecho ningún corte.<br>El primero se hace desde el Inicio con "✂️ Hacer corte ahora".</p></div>';return;}
-  el.innerHTML=cs.map(c=>`<div class="card">
+  el.innerHTML=cs.map((c,i)=>`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <strong style="font-size:15px">✂️ Corte #${c.numero}</strong>
       <span style="font-size:12px;color:var(--tx3)">${fdate(c.fechaInicio)} → ${fdate(c.fechaFin)}</span>
@@ -1485,6 +1490,7 @@ window.renderCortes=function(){
     <div class="irow"><span>🎣 Remanente (${(c.remanente||[]).reduce((s,r)=>s+r.cantidad,0)} peces)</span><strong>${fmt(c.valorRemanente)}</strong></div>
     <div id="cd-${c.id}" style="display:none;margin-top:8px"></div>
     <button class="btn df w" style="margin:10px 0 0" onclick="verCorte('${c.id}')">Ver detalle</button>
+    ${i===0?`<button class="btn da w" style="margin:8px 0 0" onclick="deshacerCorte('${c.id}')">↩️ Deshacer este corte</button>`:''}
   </div>`).join('');
 };
 
@@ -1508,6 +1514,57 @@ window.verCorte=async function(id){
     h+=vs.length?[...vs].reverse().map(v=>`<div class="irow"><span>${fdate(v.fecha)} · ${v.clienteNombre||'Sin nombre'}<br><span style="color:var(--tx3);font-size:11px">${v.items.map(i=>i.cantidad+'x '+i.nombre).join(', ')}</span></span><strong style="color:var(--green)">${fmt(v.total)}</strong></div>`).join(''):'<div style="color:var(--tx3);font-size:12px">Sin ventas en este periodo</div>';
     box.innerHTML=h;
   }catch(e){box.innerHTML='<div style="color:var(--red);font-size:12px">Error al cargar: '+e.message+'</div>';}
+};
+
+// ── DESHACER ÚLTIMO CORTE ──
+window.deshacerCorte=async function(id){
+  const cs=DB.cortes||[];
+  if(!cs.length||cs[cs.length-1].id!==id){alert('Solo se puede deshacer el corte más reciente.');return;}
+  const c=cs[cs.length-1];
+  if(!confirm('↩️ DESHACER CORTE #'+c.numero+'\n\nTodo volverá a como estaba antes del corte:\n• Regresan las ventas, gastos e importaciones del periodo\n• Regresan las variedades al inventario\n• El corte se elimina del historial\n\nOJO: lo que hayas registrado DESPUÉS del corte se unirá al periodo restaurado. Corrige lo que necesites y vuelve a hacer el corte de inmediato.\n\n¿Deshacer el corte?'))return;
+  if(!await askPassword('Escribe tu contraseña para deshacer el Corte #'+c.numero+'.'))return;
+  sync(true);
+  try{
+    const snap=await getDoc(doc(db,'negocio',id));
+    if(!snap.exists())throw new Error('No se encontró el detalle del corte');
+    const dd=snap.data();
+    const oldV=JSON.parse(dd.ventas||'[]'),oldI=JSON.parse(dd.importaciones||'[]'),oldG=JSON.parse(dd.gastos||'[]'),oldB=JSON.parse(dd.bajas||'[]'),oldA=JSON.parse(dd.apartados||'[]');
+    // Quitar la importación sintética de remanente y restaurar movimientos
+    const remNota='Remanente del corte #'+c.numero;
+    DB.importaciones=DB.importaciones.filter(i=>i.notas!==remNota);
+    DB.ventas=[...oldV,...DB.ventas];
+    DB.importaciones=[...oldI,...DB.importaciones];
+    DB.gastos=[...oldG,...DB.gastos];
+    DB.bajas=[...oldB,...(DB.bajas||[])];
+    DB.apartados=[...oldA,...DB.apartados];
+    // Restaurar variedades del catálogo
+    const cur=new Set(DB.catalogo.map(x=>x.id));
+    if(dd.catalogo){
+      JSON.parse(dd.catalogo).forEach(cc=>{if(!cur.has(cc.id))DB.catalogo.push(cc);});
+    }else{
+      // Cortes viejos sin catálogo guardado: reconstrucción básica desde importaciones
+      const seen={};
+      oldI.forEach(i=>i.items.forEach(it=>{if(!cur.has(it.catId)&&!seen[it.catId]){seen[it.catId]=true;DB.catalogo.push({id:it.catId,nombre:it.nombre||it.catId,talla:'',costo:it.costo||0,precio:0});}}));
+    }
+    // Restaurar fotos si el corte las guardó
+    if(dd.imgsRemovidas){
+      const ir=JSON.parse(dd.imgsRemovidas);
+      let ch=false;
+      Object.keys(ir).forEach(k=>{if(!IMGS[k]){IMGS[k]=ir[k];ch=true;}});
+      if(ch)await setDoc(IDOC,IMGS);
+    }
+    DB.periodoInicio=c.fechaInicio;
+    DB.cortes=cs.slice(0,-1);
+    await setDoc(DDOC,DB);
+    await deleteDoc(doc(db,'negocio',id));
+    sync(false);
+    alert('✓ Corte #'+c.numero+' deshecho. Todo volvió a como estaba.\nCorrige lo necesario y vuelve a hacer el corte.');
+    go('pg-dash');
+  }catch(e){
+    sync(false);console.error(e);
+    alert('Error al deshacer: '+e.message+'\nNo se modificó nada.');
+    location.reload();
+  }
 };
 window.delV=async function(id){if(confirm('¿Borrar esta venta?')){DB.ventas=DB.ventas.filter(v=>v.id!==id);await save();renderHV()}};
 
