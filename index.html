@@ -116,6 +116,18 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
   <button onclick="retrySave()" style="background:var(--rbg);border:1px solid var(--rbd);color:var(--red);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Reintentar</button>
 </div>
 <div id="off-bar" style="display:none;position:sticky;top:0;z-index:101;background:rgba(255,198,109,.12);border-bottom:1px solid var(--abd);padding:7px 1rem;font-size:12px;color:var(--amber);text-align:center;font-weight:600">📡 Sin conexión — los cambios no se guardarán</div>
+<div id="pw-modal" style="display:none;position:fixed;inset:0;background:rgba(2,10,22,.88);z-index:9998;align-items:center;justify-content:center;padding:2rem">
+  <div class="card" style="width:100%;max-width:340px">
+    <div style="font-weight:700;margin-bottom:4px">🔒 Confirmar con contraseña</div>
+    <p style="font-size:12px;color:var(--tx3);margin-bottom:12px" id="pw-msg">Esta acción requiere tu contraseña.</p>
+    <div class="fld"><input type="password" id="pw-input" placeholder="Tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')pwOk()"></div>
+    <div class="r2" style="margin-bottom:0">
+      <button class="btn df" onclick="pwCancel()">Cancelar</button>
+      <button class="btn so" id="pw-btn" onclick="pwOk()">Confirmar</button>
+    </div>
+    <div id="pw-err" style="display:none;color:var(--red);font-size:12px;text-align:center;margin-top:8px">Contraseña incorrecta</div>
+  </div>
+</div>
 <div id="app">
 
 <!-- DASHBOARD -->
@@ -172,13 +184,25 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
       <div class="card" id="d-top-list"></div>
     </div>
     <div class="div"></div>
+    <div class="sec">✂️ Corte de importación</div>
+    <div class="card">
+      <div id="d-periodo" style="font-size:13px;color:var(--tx2);margin-bottom:12px">—</div>
+      <button class="btn so w" onclick="hacerCorte()">✂️ Hacer corte ahora</button>
+      <button class="btn df w" style="margin-bottom:0" onclick="go('pg-cortes')">📋 Historial de cortes</button>
+    </div>
+    <div class="div"></div>
     <div class="sec">Ajustes y datos</div>
     <div class="card">
       <button class="btn pr w" onclick="downloadBackup()">⬇️ Descargar respaldo completo</button>
-      <button class="btn df w" onclick="archiveOldYears()">📦 Archivar años anteriores</button>
       <button class="btn da w" onclick="doLogout()" style="margin-bottom:0">Cerrar sesión</button>
     </div>
   </div>
+</div>
+
+<!-- CORTES -->
+<div class="page" id="pg-cortes">
+  <div class="ph"><button class="back" onclick="go('pg-dash')">←</button><div><h1>Cortes de importación</h1><small>Historial por periodo</small></div></div>
+  <div class="p" id="cortes-list"></div>
 </div>
 
 <!-- INVENTARIO -->
@@ -617,7 +641,7 @@ async function load(){
   sync(true);
   try{
     const[ds,is,as,hs,bs]=await Promise.all([getDoc(DDOC),getDoc(IDOC),getDoc(ADOC),getDoc(HDOC),getDoc(BDOC)]);
-    if(ds.exists()){DB=ds.data();if(!DB.bajas)DB.bajas=[]}
+    if(ds.exists()){DB=ds.data();if(!DB.bajas)DB.bajas=[];if(!DB.cortes)DB.cortes=[]}
     else{DB={catalogo:CAT_INIT,importaciones:[IMP_INIT],ventas:[],apartados:[],gastos:[],bajas:[]};await save()}
     if(is.exists()){IMGS=is.data();Object.keys(IMGS).forEach(k=>{if(typeof IMGS[k]==='string')IMGS[k]=[IMGS[k]];});}
     if(as.exists())ACCDB=as.data();
@@ -813,7 +837,8 @@ const NAV_MAP={
   'pg-ventas':'nb-v','pg-hv':'nb-v',
   'pg-ap':'nb-ap','pg-nap':'nb-ap','pg-apd':'nb-ap','pg-ape':'nb-ap',
   'pg-gastos':'nb-g',
-  'pg-blog':'nb-blog'
+  'pg-blog':'nb-blog',
+  'pg-cortes':'nb-dash'
 };
 window.go=function(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -828,6 +853,7 @@ window.go=function(id){
   if(id==='pg-ap')renderAp();
   if(id==='pg-gastos')renderGastos();
   if(id==='pg-blog')renderBlogAdmin();
+  if(id==='pg-cortes')renderCortes();
   if(id==='pg-nap')initNap();
   if(id==='pg-bajas')initBajas();
   if(id==='pg-hv')renderHV();
@@ -846,6 +872,12 @@ window.iTab=function(t){
 // ── DASHBOARD ──────────────────────────────────────────────
 function renderDash(){
   document.getElementById('d-fecha').textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const dp=document.getElementById('d-periodo');
+  if(dp){
+    const nCortes=(DB.cortes||[]).length;
+    const pIni=DB.periodoInicio||(DB.importaciones[0]?DB.importaciones[0].fecha:null);
+    dp.textContent='📦 Importación #'+(nCortes+1)+(pIni?' · desde '+fdate(pIni):'')+(nCortes?' · '+nCortes+' corte'+(nCortes>1?'s':'')+' anteriores':'');
+  }
   const gastado=DB.importaciones.reduce((s,i)=>s+i.items.reduce((ss,it)=>ss+it.cantidad*it.costo,0),0);
   const vendido=DB.ventas.reduce((s,v)=>s+v.total,0);
   const cVend=DB.ventas.reduce((s,v)=>s+v.items.reduce((ss,it)=>{const c=DB.catalogo.find(x=>x.id===it.catId);return ss+(c?c.costo:0)*it.cantidad},0),0);
@@ -1326,6 +1358,156 @@ window.exportGastosCSV=function(){
   const rows=[['Fecha','Categoría','Descripción','Monto']];
   [...DB.gastos].reverse().forEach(g=>rows.push([g.fecha,g.categoria||'',g.descripcion||'',g.monto]));
   downloadCSV(rows,'gastos-doctordisco-'+hoy()+'.csv');
+};
+
+// ── VERIFICACIÓN DE CONTRASEÑA (Firebase Auth) ──
+let pwResolve=null;
+function askPassword(msg){
+  return new Promise(res=>{
+    pwResolve=res;
+    document.getElementById('pw-msg').textContent=msg||'Esta acción requiere tu contraseña.';
+    document.getElementById('pw-input').value='';
+    document.getElementById('pw-err').style.display='none';
+    document.getElementById('pw-modal').style.display='flex';
+    setTimeout(()=>document.getElementById('pw-input').focus(),60);
+  });
+}
+window.pwCancel=function(){
+  document.getElementById('pw-modal').style.display='none';
+  if(pwResolve){pwResolve(false);pwResolve=null;}
+};
+window.pwOk=async function(){
+  const pass=document.getElementById('pw-input').value;
+  if(!pass)return;
+  const btn=document.getElementById('pw-btn');
+  btn.disabled=true;btn.textContent='Verificando...';
+  try{
+    await signInWithEmailAndPassword(auth,auth.currentUser.email,pass);
+    btn.disabled=false;btn.textContent='Confirmar';
+    document.getElementById('pw-modal').style.display='none';
+    if(pwResolve){pwResolve(true);pwResolve=null;}
+  }catch(e){
+    btn.disabled=false;btn.textContent='Confirmar';
+    const er=document.getElementById('pw-err');
+    er.textContent=e.code==='auth/too-many-requests'?'Demasiados intentos. Espera unos minutos':'Contraseña incorrecta';
+    er.style.display='block';
+  }
+};
+
+// ── CORTE DE IMPORTACIÓN ──────────────────────────────────
+window.hacerCorte=async function(){
+  if(!DB.ventas.length&&!DB.importaciones.length){alert('No hay movimientos en este periodo para hacer corte.');return;}
+  // Números del periodo actual
+  const vTot=DB.ventas.reduce((s,v)=>s+v.total,0);
+  const cVend=DB.ventas.reduce((s,v)=>s+v.items.reduce((ss,it)=>{const c=DB.catalogo.find(x=>x.id===it.catId);return ss+(c?c.costo:0)*it.cantidad},0),0);
+  const gOp=DB.gastos.reduce((s,g)=>s+g.monto,0);
+  const gan=vTot-cVend-gOp;
+  const pecesV=DB.ventas.reduce((s,v)=>s+v.items.reduce((ss,it)=>ss+it.cantidad,0),0);
+  const inv=DB.importaciones.reduce((s,i)=>s+i.items.reduce((ss,it)=>ss+it.cantidad*it.costo,0),0);
+  // Remanente físico por variedad (incluye apartados pendientes)
+  const net={};
+  DB.importaciones.forEach(i=>i.items.forEach(it=>{net[it.catId]=(net[it.catId]||0)+it.cantidad}));
+  DB.ventas.forEach(v=>v.items.forEach(it=>{net[it.catId]=(net[it.catId]||0)-it.cantidad}));
+  (DB.bajas||[]).forEach(b=>{net[b.catId]=(net[b.catId]||0)-b.cantidad});
+  const rem=Object.keys(net).filter(cid=>net[cid]>0).map(cid=>{
+    const c=DB.catalogo.find(x=>x.id===cid)||{};
+    return {catId:cid,nombre:c.nombre||cid,talla:c.talla||'',cantidad:net[cid],costo:c.costo||0};
+  });
+  const remVal=rem.reduce((s,r)=>s+r.cantidad*r.costo,0);
+  const remPz=rem.reduce((s,r)=>s+r.cantidad,0);
+  const fIni=DB.periodoInicio||(DB.importaciones[0]?DB.importaciones[0].fecha:hoy());
+  const num=(DB.cortes||[]).length+1;
+  if(!confirm('✂️ CORTE #'+num+'  ('+fdate(fIni)+' → hoy)\n\n'
+    +'💰 Vendido: '+fmt(vTot)+' ('+DB.ventas.length+' ventas)\n'
+    +'🐟 Peces vendidos: '+pecesV+'\n'
+    +'📈 Ganancia del periodo: '+fmt(gan)+'\n'
+    +'📦 Remanente: '+remPz+' peces ('+fmt(remVal)+')\n\n'
+    +'Al confirmar:\n'
+    +'• Todo el detalle se guarda en el historial de cortes\n'
+    +'• Las variedades agotadas se quitan del inventario\n'
+    +'• Los peces que quedan pasan como "Remanente" al nuevo periodo\n'
+    +'• Desde hoy empieza el periodo de la nueva importación\n\n¿Hacer el corte?'))return;
+  if(!await askPassword('Escribe tu contraseña para ejecutar el Corte #'+num+'.'))return;
+  const corteId='corte_'+Date.now();
+  sync(true);
+  try{
+    // 1. Guardar detalle completo en documento propio
+    await setDoc(doc(db,'negocio',corteId),{
+      creado:hoy(),
+      ventas:JSON.stringify(DB.ventas),
+      importaciones:JSON.stringify(DB.importaciones),
+      gastos:JSON.stringify(DB.gastos),
+      bajas:JSON.stringify(DB.bajas||[]),
+      apartados:JSON.stringify(DB.apartados.filter(a=>a.status!=='pendiente'))
+    });
+    // 2. Resumen ligero en el historial
+    if(!DB.cortes)DB.cortes=[];
+    DB.cortes.push({id:corteId,numero:num,fechaInicio:fIni,fechaFin:hoy(),ventasTotal:vTot,costoVendido:cVend,gastosOp:gOp,ganancia:gan,pecesVendidos:pecesV,numVentas:DB.ventas.length,inversion:inv,remanente:rem,valorRemanente:remVal});
+    // 3. Iniciar periodo nuevo
+    DB.ventas=[];DB.gastos=[];DB.bajas=[];
+    DB.apartados=DB.apartados.filter(a=>a.status==='pendiente');
+    DB.importaciones=rem.length?[{id:uid(),fecha:hoy(),notas:'Remanente del corte #'+num,items:rem.map(r=>({catId:r.catId,nombre:r.nombre,cantidad:r.cantidad,costo:r.costo}))}]:[];
+    // 4. Quitar del catálogo las variedades sin remanente ni apartado pendiente
+    const keep=new Set(rem.map(r=>r.catId));
+    DB.apartados.forEach(a=>a.items.forEach(it=>keep.add(it.catId)));
+    const removed=DB.catalogo.filter(c=>!keep.has(c.id)).map(c=>c.id);
+    DB.catalogo=DB.catalogo.filter(c=>keep.has(c.id));
+    DB.periodoInicio=hoy();
+    await setDoc(DDOC,DB);
+    // 5. Limpiar fotos de variedades eliminadas
+    let imgCh=false;
+    removed.forEach(cid=>{if(IMGS[cid]){delete IMGS[cid];imgCh=true;}});
+    if(imgCh)await setDoc(IDOC,IMGS);
+    sync(false);
+    alert('✓ Corte #'+num+' guardado.\nDesde hoy empieza el periodo de la nueva importación.');
+    renderDash();
+  }catch(e){
+    sync(false);console.error(e);
+    alert('Error al hacer el corte: '+e.message+'\nNo se modificó nada.');
+    location.reload();
+  }
+};
+
+window.renderCortes=function(){
+  const el=document.getElementById('cortes-list');
+  const cs=[...(DB.cortes||[])].reverse();
+  if(!cs.length){el.innerHTML='<div class="empty"><p>Aún no has hecho ningún corte.<br>El primero se hace desde el Inicio con "✂️ Hacer corte ahora".</p></div>';return;}
+  el.innerHTML=cs.map(c=>`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <strong style="font-size:15px">✂️ Corte #${c.numero}</strong>
+      <span style="font-size:12px;color:var(--tx3)">${fdate(c.fechaInicio)} → ${fdate(c.fechaFin)}</span>
+    </div>
+    <div class="irow"><span>💰 Vendido (${c.numVentas} venta${c.numVentas!==1?'s':''})</span><strong style="color:var(--green)">${fmt(c.ventasTotal)}</strong></div>
+    <div class="irow"><span>🐟 Peces vendidos</span><strong>${c.pecesVendidos}</strong></div>
+    <div class="irow"><span>📦 Invertido en importación</span><strong style="color:var(--red)">${fmt(c.inversion)}</strong></div>
+    <div class="irow"><span>🧾 Gastos operativos</span><strong style="color:var(--red)">${fmt(c.gastosOp)}</strong></div>
+    <div class="irow"><span>📈 Ganancia del periodo</span><strong style="color:${c.ganancia>=0?'var(--green)':'var(--red)'}">${fmt(c.ganancia)}</strong></div>
+    <div class="irow"><span>🎣 Remanente (${(c.remanente||[]).reduce((s,r)=>s+r.cantidad,0)} peces)</span><strong>${fmt(c.valorRemanente)}</strong></div>
+    <div id="cd-${c.id}" style="display:none;margin-top:8px"></div>
+    <button class="btn df w" style="margin:10px 0 0" onclick="verCorte('${c.id}')">Ver detalle</button>
+  </div>`).join('');
+};
+
+window.verCorte=async function(id){
+  const box=document.getElementById('cd-'+id);
+  if(box.style.display==='block'){box.style.display='none';return;}
+  box.style.display='block';
+  box.innerHTML='<div style="color:var(--tx3);font-size:12px">Cargando detalle...</div>';
+  const c=(DB.cortes||[]).find(x=>x.id===id);
+  try{
+    const snap=await getDoc(doc(db,'negocio',id));
+    if(!snap.exists()){box.innerHTML='<div style="color:var(--tx3);font-size:12px">Sin detalle disponible</div>';return;}
+    const dd=snap.data();
+    const vs=JSON.parse(dd.ventas||'[]');
+    let h='';
+    if(c&&(c.remanente||[]).length){
+      h+='<div class="sec" style="margin-top:6px">Remanente al corte</div>';
+      h+=c.remanente.map(r=>`<div class="irow"><span>${r.nombre} ${r.talla||''}</span><span>${r.cantidad} pz · ${fmt(r.costo)} c/u</span></div>`).join('');
+    }
+    h+='<div class="sec" style="margin-top:10px">Ventas del periodo</div>';
+    h+=vs.length?[...vs].reverse().map(v=>`<div class="irow"><span>${fdate(v.fecha)} · ${v.clienteNombre||'Sin nombre'}<br><span style="color:var(--tx3);font-size:11px">${v.items.map(i=>i.cantidad+'x '+i.nombre).join(', ')}</span></span><strong style="color:var(--green)">${fmt(v.total)}</strong></div>`).join(''):'<div style="color:var(--tx3);font-size:12px">Sin ventas en este periodo</div>';
+    box.innerHTML=h;
+  }catch(e){box.innerHTML='<div style="color:var(--red);font-size:12px">Error al cargar: '+e.message+'</div>';}
 };
 window.delV=async function(id){if(confirm('¿Borrar esta venta?')){DB.ventas=DB.ventas.filter(v=>v.id!==id);await save();renderHV()}};
 
