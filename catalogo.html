@@ -142,7 +142,35 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
   .ht{font-size:54px!important}
 }
 /* ── TOPSTRIP + NAV ── */
-.topstrip{background:rgba(0,212,180,.14);border-bottom:1px solid rgba(0,212,180,.2);text-align:center;padding:8px;font-size:10px;font-weight:800;letter-spacing:.26em;color:rgba(0,212,180,.9);text-transform:uppercase}
+.topstrip{display:block;position:relative;height:31px;background:rgba(0,212,180,.14);border-bottom:1px solid rgba(0,212,180,.2);text-decoration:none;overflow:hidden}
+.topstrip span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.18em;color:rgba(0,212,180,.9);text-transform:uppercase;padding:0 10px;white-space:nowrap}
+.topstrip:hover span{color:#fff}
+.ts-a{animation:tsa 9s infinite}
+.ts-b{animation:tsb 9s infinite}
+@keyframes tsa{0%,44%{opacity:1}50%,94%{opacity:0}100%{opacity:1}}
+@keyframes tsb{0%,44%{opacity:0}50%,94%{opacity:1}100%{opacity:0}}
+@media(max-width:500px){.topstrip span{font-size:9px;letter-spacing:.1em}}
+/* Link comunidad en hero */
+.hcomm{display:inline-flex;align-items:center;gap:6px;margin-top:16px;color:rgba(0,212,180,.85);font-size:13px;font-weight:700;text-decoration:none;border-bottom:1px dashed rgba(0,212,180,.4);padding-bottom:2px;position:relative;z-index:2;transition:color .2s}
+.hcomm:hover{color:#fff;border-bottom-color:#fff}
+/* Tarjeta comunidad en la cuadrícula */
+.ccard{background:linear-gradient(160deg,rgba(0,212,180,.14),rgba(0,90,200,.16)),var(--sf);border:1px solid rgba(0,212,180,.4);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.5rem 1rem;gap:8px;min-height:260px}
+.ccard:hover{border-color:var(--teal);box-shadow:0 10px 36px rgba(0,212,180,.2);transform:translateY(-4px)}
+.ccard-ic{font-size:40px;animation:fl 4s ease-in-out infinite}
+.ccard-t{font-family:'Sora',sans-serif;font-size:15px;font-weight:800;line-height:1.35}
+.ccard-t span{color:var(--teal)}
+.ccard-s{font-size:12px;color:var(--tx2);line-height:1.5;max-width:200px}
+.ccard-b{background:linear-gradient(135deg,#25d366,#1ebe5d);color:#fff;font-weight:700;font-size:12.5px;border-radius:20px;padding:8px 18px;margin-top:4px;box-shadow:0 4px 14px rgba(37,211,102,.35)}
+/* Mini-aviso deslizante */
+#comm-toast{position:fixed;bottom:90px;right:16px;z-index:140;display:flex;align-items:center;gap:10px;background:rgba(5,20,40,.97);backdrop-filter:blur(14px);border:1px solid rgba(0,212,180,.4);border-radius:16px;padding:12px 14px;max-width:330px;box-shadow:0 14px 44px rgba(0,0,0,.55);transform:translateX(120%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+#comm-toast.show{transform:translateX(0)}
+#comm-toast .ct-ic{font-size:26px;flex-shrink:0}
+#comm-toast .ct-tx{flex:1;min-width:0}
+#comm-toast .ct-tx b{display:block;font-size:13px;margin-bottom:2px}
+#comm-toast .ct-tx span{font-size:11.5px;color:var(--tx2);line-height:1.4;display:block}
+#comm-toast .ct-btn{background:linear-gradient(135deg,#25d366,#1ebe5d);color:#fff;font-weight:700;font-size:12px;border-radius:18px;padding:8px 14px;text-decoration:none;flex-shrink:0}
+#comm-toast .ct-x{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+@media(max-width:480px){#comm-toast{right:12px;left:12px;max-width:none;bottom:86px}}
 .sitenav{position:sticky;top:0;z-index:200;background:rgba(2,10,22,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,212,180,.12);display:flex;align-items:center;justify-content:center;height:52px}
 .snlinks{display:flex;gap:2rem}.snlink{color:rgba(255,255,255,.55);font-size:13px;font-weight:600;text-decoration:none;padding:4px 0;border-bottom:2px solid transparent;transition:all .25s;white-space:nowrap;letter-spacing:.03em}
 .snlink:hover{color:#fff;border-bottom-color:rgba(0,212,180,.5)}.snlink.active{color:#fff;border-bottom-color:var(--teal)}
@@ -251,7 +279,10 @@ html{scroll-behavior:smooth}
 </style>
 </head>
 <body>
-<div class="topstrip">DISTRIBUIDOR OFICIAL</div>
+<a class="topstrip" id="ts-link" href="#" target="_blank" rel="noopener">
+  <span class="ts-a">🏅 DISTRIBUIDOR OFICIAL HYGGER</span>
+  <span class="ts-b">🐠 ÚNETE A LA COMUNIDAD DR. DISCO →</span>
+</a>
 <nav class="sitenav">
   <div class="snlinks">
     <a class="snlink active" id="nav-i" href="#" onclick="setNav('nav-i');window.scrollTo({top:0,behavior:'smooth'});return false">Inicio</a>
@@ -282,6 +313,7 @@ html{scroll-behavior:smooth}
       Explora Nuestro Catálogo
       <span class="hcta-sub">⬤ EN VIVO</span>
     </button>
+    <a class="hcomm" id="hcomm-link" href="#" target="_blank" rel="noopener">💬 Únete a la comunidad Dr. Disco →</a>
   </div>
   <!-- Card derecha: Hygger -->
   <div class="hcard hright">
@@ -326,7 +358,7 @@ html{scroll-behavior:smooth}
 </div>
 <section class="comm">
   <div class="comm-ic">🐠</div>
-  <div class="comm-badge">Comunidad Disco</div>
+  <div class="comm-badge">Comunidad Dr. Disco</div>
   <h2 class="comm-ttl">Únete a la familia <span>Doctor Disco</span></h2>
   <p class="comm-sub">Sé el primero en enterarte cuando llega una importación nueva, aprende de cuidado de discos con expertos y accede a promociones exclusivas para miembros.</p>
   <div class="comm-feats">
@@ -357,6 +389,12 @@ html{scroll-behavior:smooth}
     </div>
   </div>
   <div class="fbase">© Doctor Disco — Premium Care · Distribuidor Oficial Hygger</div>
+</div>
+<div id="comm-toast">
+  <button class="ct-x" onclick="hideCommToast()">×</button>
+  <div class="ct-ic">🐠</div>
+  <div class="ct-tx"><b>¿Te gustan los discos?</b><span>Únete a la comunidad y entérate primero de cada importación</span></div>
+  <a class="ct-btn" id="ct-btn" href="#" target="_blank" rel="noopener" onclick="hideCommToast()">Unirme</a>
 </div>
 <a class="wafloat" id="wa-float" href="https://wa.me/523310934314?text=Hola%20Doctor%20Disco!%20Me%20gustar%C3%ADa%20m%C3%A1s%20informaci%C3%B3n." target="_blank" rel="noopener" aria-label="WhatsApp"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.546 5.877L0 24l6.303-1.519A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.502-5.2-1.378l-.373-.22-3.742.902.944-3.63-.243-.374A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg></a>
 <div class="lb" id="lb" onclick="closeLb()">
@@ -406,12 +444,28 @@ html{scroll-behavior:smooth}
 var LI = "https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e";
 // ⬇️ PEGA AQUÍ EL LINK DE INVITACIÓN DE TU GRUPO DE WHATSAPP (WhatsApp > Grupo > Invitar mediante enlace)
 var GRUPO_WA = "https://chat.whatsapp.com/KpDMURw33bi0ee7frVhHEy?mode=gi_t";
-(function(){
-  var b=document.getElementById('comm-btn');
-  if(!b)return;
-  if(GRUPO_WA.indexOf('chat.whatsapp.com')>=0){b.href=GRUPO_WA;}
-  else{b.href='https://wa.me/523310934314?text='+encodeURIComponent('Hola Doctor Disco! Quiero unirme al grupo de la comunidad 🐠');}
-})();
+var GRUPO_URL = GRUPO_WA.indexOf('chat.whatsapp.com')>=0 ? GRUPO_WA
+  : 'https://wa.me/523310934314?text='+encodeURIComponent('Hola Doctor Disco! Quiero unirme al grupo de la comunidad 🐠');
+['comm-btn','ts-link','hcomm-link','ct-btn'].forEach(function(id){
+  var e=document.getElementById(id);if(e)e.href=GRUPO_URL;
+});
+window.openGrupo=function(){window.open(GRUPO_URL,'_blank');};
+// Tarjeta de comunidad dentro de la cuadrícula de peces
+var COMM_CARD='<div class="fc rv ccard" onclick="openGrupo()"><div class="ccard-ic">🐠</div><div class="ccard-t">Únete a la <span>Comunidad Dr. Disco</span></div><div class="ccard-s">Entérate primero de cada importación, tips de cuidado y promos exclusivas</div><div class="ccard-b">💬 Unirme gratis</div></div>';
+// Mini-aviso: una vez por sesión, cuando el visitante ya scrolleó
+window.hideCommToast=function(){document.getElementById('comm-toast').classList.remove('show');};
+function showCommToast(){
+  try{
+    if(sessionStorage.getItem('dd-ct'))return;
+    sessionStorage.setItem('dd-ct','1');
+  }catch(e){}
+  document.getElementById('comm-toast').classList.add('show');
+  setTimeout(window.hideCommToast,14000);
+}
+var ctArmed=false;
+window.addEventListener('scroll',function(){
+  if(!ctArmed&&window.scrollY>window.innerHeight*.7){ctArmed=true;setTimeout(showCommToast,2000);}
+},{passive:true});
 // Productos cargados dinámicamente de Firestore
 var HYGDB={productos:[],whatsapp:'523310934314'};
 var DB=null, IMGS={}, ACCDB={}, BLOGDB={posts:[]};
@@ -460,7 +514,7 @@ function renderFish(){
   var el=document.getElementById('fish-list');
   if(!disp.length){el.innerHTML='<div class="ctr"><p>No hay peces disponibles</p></div>';return;}
   var h='<div class="fgrid">';
-  disp.forEach(function(cat){
+  disp.forEach(function(cat,ci){
     var st=getStock(cat.id,DB),imgs=Array.isArray(IMGS[cat.id])?IMGS[cat.id]:IMGS[cat.id]?[IMGS[cat.id]]:[],img=imgs[0]||'';
     var stTag='<span class="stk">'+(st<=2?'<span class="slo">Ultimos '+st+'</span>':'<span class="sok">'+st+' disp.</span>')+'</span>';
     var waMsg=encodeURIComponent('Hola Doctor Disco!\nMe interesa: '+cat.nombre+' ('+cat.talla+')\nPrecio: '+fmt(cat.precio)+'\nEsta disponible?');
@@ -473,7 +527,9 @@ function renderFish(){
     h+='<div class="fbody"><div class="fname">'+cat.nombre+'</div><div class="ftalla">Talla: '+cat.talla+'</div><div class="fbot"><div class="fprice">'+fmt(cat.precio)+'</div></div>';
     h+='<a href="https://wa.me/'+(HYGDB.whatsapp||'523310934314')+'?text='+waMsg+'" target="_blank" class="wabtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.564 4.14 1.546 5.877L0 24l6.303-1.519A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.502-5.2-1.378l-.373-.22-3.742.902.944-3.63-.243-.374A9.956 9.956 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Me interesa</a>';
     h+='</div></div>';
+    if(ci===5)h+=COMM_CARD;
   });
+  if(disp.length<6)h+=COMM_CARD;
   el.innerHTML=h+'</div>';
   revealAll();
 }
