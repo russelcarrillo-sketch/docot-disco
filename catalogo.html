@@ -157,6 +157,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 .ccard{background:linear-gradient(160deg,rgba(0,212,180,.14),rgba(0,90,200,.16)),var(--sf);border:1px solid rgba(0,212,180,.4);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.5rem 1rem;gap:8px;min-height:260px}
 .ccard:hover{border-color:var(--teal);box-shadow:0 10px 36px rgba(0,212,180,.2);transform:translateY(-4px)}
 .ccard-ic{font-size:40px;animation:fl 4s ease-in-out infinite}
+.ccard-ic img{width:74px;height:74px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5)) drop-shadow(0 0 10px rgba(0,212,180,.3))}
 .ccard-t{font-family:'Sora',sans-serif;font-size:15px;font-weight:800;line-height:1.35}
 .ccard-t span{color:var(--teal)}
 .ccard-s{font-size:12px;color:var(--tx2);line-height:1.5;max-width:200px}
@@ -165,6 +166,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 #comm-toast{position:fixed;bottom:90px;right:16px;z-index:140;display:flex;align-items:center;gap:10px;background:rgba(5,20,40,.97);backdrop-filter:blur(14px);border:1px solid rgba(0,212,180,.4);border-radius:16px;padding:12px 14px;max-width:330px;box-shadow:0 14px 44px rgba(0,0,0,.55);transform:translateX(120%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
 #comm-toast.show{transform:translateX(0)}
 #comm-toast .ct-ic{font-size:26px;flex-shrink:0}
+#comm-toast .ct-ic img{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,212,180,.35))}
 #comm-toast .ct-tx{flex:1;min-width:0}
 #comm-toast .ct-tx b{display:block;font-size:13px;margin-bottom:2px}
 #comm-toast .ct-tx span{font-size:11.5px;color:var(--tx2);line-height:1.4;display:block}
@@ -264,7 +266,8 @@ html{scroll-behavior:smooth}
 .comm{position:relative;overflow:hidden;margin:2.5rem 1rem 1.5rem;border-radius:24px;background:linear-gradient(135deg,rgba(0,212,180,.13),rgba(0,90,200,.15)),var(--sf);border:1px solid rgba(0,212,180,.38);text-align:center;padding:2.6rem 1.4rem;box-shadow:0 20px 60px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.07)}
 @media(min-width:900px){.comm{max-width:860px;margin:3rem auto 2rem;padding:3.2rem 2.5rem}}
 .comm::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,180,.16) 0%,transparent 70%);animation:gp 3.5s ease-in-out infinite;pointer-events:none}
-.comm-ic{font-size:46px;margin-bottom:6px;display:inline-block;animation:fl 4s ease-in-out infinite;position:relative}
+.comm-ic{display:block;width:100px;margin:0 auto 12px;animation:fl 4s ease-in-out infinite;position:relative}
+.comm-ic img{display:block;width:100px;height:100px;object-fit:contain;margin:0 auto;filter:drop-shadow(0 6px 16px rgba(0,0,0,.55)) drop-shadow(0 0 16px rgba(0,212,180,.32))}
 .comm-badge{display:inline-block;background:rgba(0,212,180,.14);border:1px solid rgba(0,212,180,.4);border-radius:20px;padding:4px 14px;font-size:10px;font-weight:800;letter-spacing:.22em;color:var(--teal);text-transform:uppercase;margin-bottom:12px;position:relative}
 .comm-ttl{font-family:'Sora',sans-serif;font-size:24px;font-weight:800;line-height:1.25;margin-bottom:10px;position:relative}
 .comm-ttl span{color:var(--teal)}
@@ -281,7 +284,7 @@ html{scroll-behavior:smooth}
 <body>
 <a class="topstrip" id="ts-link" href="#" target="_blank" rel="noopener">
   <span class="ts-a">🏅 DISTRIBUIDOR OFICIAL HYGGER</span>
-  <span class="ts-b">🐠 ÚNETE A LA COMUNIDAD DR. DISCO →</span>
+  <span class="ts-b"><img src="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e" alt="" style="height:20px;width:20px;object-fit:contain;vertical-align:middle;margin-right:2px"> ÚNETE A LA COMUNIDAD DR. DISCO →</span>
 </a>
 <nav class="sitenav">
   <div class="snlinks">
@@ -357,7 +360,7 @@ html{scroll-behavior:smooth}
   <div class="bgrid" id="blog-list"><div class="ctr"><div class="spin"></div><p>Cargando...</p></div></div>
 </div>
 <section class="comm">
-  <div class="comm-ic">🐠</div>
+  <div class="comm-ic"><img src="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e" alt="Dr. Disco"></div>
   <div class="comm-badge">Comunidad Dr. Disco</div>
   <h2 class="comm-ttl">Únete a la familia <span>Doctor Disco</span></h2>
   <p class="comm-sub">Sé el primero en enterarte cuando llega una importación nueva, aprende de cuidado de discos con expertos y accede a promociones exclusivas para miembros.</p>
@@ -392,7 +395,7 @@ html{scroll-behavior:smooth}
 </div>
 <div id="comm-toast">
   <button class="ct-x" onclick="hideCommToast()">×</button>
-  <div class="ct-ic">🐠</div>
+  <div class="ct-ic"><img src="https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e" alt="Dr. Disco"></div>
   <div class="ct-tx"><b>¿Te gustan los discos?</b><span>Únete a la comunidad y entérate primero de cada importación</span></div>
   <a class="ct-btn" id="ct-btn" href="#" target="_blank" rel="noopener" onclick="hideCommToast()">Unirme</a>
 </div>
@@ -451,7 +454,7 @@ var GRUPO_URL = GRUPO_WA.indexOf('chat.whatsapp.com')>=0 ? GRUPO_WA
 });
 window.openGrupo=function(){window.open(GRUPO_URL,'_blank');};
 // Tarjeta de comunidad dentro de la cuadrícula de peces
-var COMM_CARD='<div class="fc rv ccard" onclick="openGrupo()"><div class="ccard-ic">🐠</div><div class="ccard-t">Únete a la <span>Comunidad Dr. Disco</span></div><div class="ccard-s">Entérate primero de cada importación, tips de cuidado y promos exclusivas</div><div class="ccard-b">💬 Unirme gratis</div></div>';
+var COMM_CARD='<div class="fc rv ccard" onclick="openGrupo()"><div class="ccard-ic"><img src="'+LI+'" alt="Dr. Disco"></div><div class="ccard-t">Únete a la <span>Comunidad Dr. Disco</span></div><div class="ccard-s">Entérate primero de cada importación, tips de cuidado y promos exclusivas</div><div class="ccard-b">💬 Unirme gratis</div></div>';
 // Mini-aviso: una vez por sesión, cuando el visitante ya scrolleó
 window.hideCommToast=function(){document.getElementById('comm-toast').classList.remove('show');};
 function showCommToast(){
