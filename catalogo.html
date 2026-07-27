@@ -449,10 +449,13 @@ var LI = "https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorag
 var GRUPO_WA = "https://chat.whatsapp.com/KpDMURw33bi0ee7frVhHEy?mode=gi_t";
 var GRUPO_URL = GRUPO_WA.indexOf('chat.whatsapp.com')>=0 ? GRUPO_WA
   : 'https://wa.me/523310934314?text='+encodeURIComponent('Hola Doctor Disco! Quiero unirme al grupo de la comunidad 🐠');
-['comm-btn','ts-link','hcomm-link','ct-btn'].forEach(function(id){
-  var e=document.getElementById(id);if(e)e.href=GRUPO_URL;
+function trackJoin(name){try{if(window.va)window.va('event',{name:name});}catch(e){}}
+var JOIN_SRC={'comm-btn':'unirse-banner','ts-link':'unirse-topstrip','hcomm-link':'unirse-hero','ct-btn':'unirse-aviso'};
+Object.keys(JOIN_SRC).forEach(function(id){
+  var e=document.getElementById(id);
+  if(e){e.href=GRUPO_URL;e.addEventListener('click',function(){trackJoin(JOIN_SRC[id]);});}
 });
-window.openGrupo=function(){window.open(GRUPO_URL,'_blank');};
+window.openGrupo=function(){trackJoin('unirse-tarjeta');window.open(GRUPO_URL,'_blank');};
 // Tarjeta de comunidad dentro de la cuadrícula de peces
 var COMM_CARD='<div class="fc rv ccard" onclick="openGrupo()"><div class="ccard-ic"><img src="'+LI+'" alt="Dr. Disco"></div><div class="ccard-t">Únete a la <span>Comunidad Dr. Disco</span></div><div class="ccard-s">Entérate primero de cada importación, tips de cuidado y promos exclusivas</div><div class="ccard-b">💬 Unirme gratis</div></div>';
 // Mini-aviso: una vez por sesión, cuando el visitante ya scrolleó
