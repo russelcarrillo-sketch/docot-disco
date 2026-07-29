@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Doctor Disco - Premium Care</title>
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8730W0QVR9"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-8730W0QVR9');</script>
 <meta name="description" content="Peces disco de importación de la más alta calidad y accesorios Hygger. Catálogo en vivo con disponibilidad real.">
 <meta name="theme-color" content="#040e1a">
 <meta property="og:type" content="website">
@@ -449,7 +452,23 @@ var LI = "https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorag
 var GRUPO_WA = "https://chat.whatsapp.com/KpDMURw33bi0ee7frVhHEy?mode=gi_t";
 var GRUPO_URL = GRUPO_WA.indexOf('chat.whatsapp.com')>=0 ? GRUPO_WA
   : 'https://wa.me/523310934314?text='+encodeURIComponent('Hola Doctor Disco! Quiero unirme al grupo de la comunidad 🐠');
-function trackJoin(name){try{if(window.va)window.va('event',{name:name});}catch(e){}}
+function ga(name,params){try{if(window.gtag)window.gtag('event',name,params||{});}catch(e){}}
+function trackJoin(name){try{if(window.va)window.va('event',{name:name});}catch(e){}ga('unirse_grupo',{origen:name});}
+// Rastreo de clics a WhatsApp (Me interesa, flotante, panel)
+document.addEventListener('click',function(e){
+  var a=e.target.closest('a[href*="wa.me"],a[href*="api.whatsapp.com"]');
+  if(!a)return;
+  var origen='otro';
+  if(a.classList.contains('wabtn'))origen='pez_me_interesa';
+  else if(a.classList.contains('wafloat'))origen='boton_flotante';
+  else if(a.id==='pan-wa')origen='panel_accesorio';
+  else if(a.id==='foot-wa')origen='footer';
+  else if(a.classList.contains('snlink'))origen='nav_contacto';
+  var nombre='';
+  var card=a.closest('.fc');
+  if(card){var fn=card.querySelector('.fname');if(fn)nombre=fn.textContent;}
+  ga('click_whatsapp',{origen:origen,producto:nombre});
+},true);
 var JOIN_SRC={'comm-btn':'unirse-banner','ts-link':'unirse-topstrip','hcomm-link':'unirse-hero','ct-btn':'unirse-aviso'};
 Object.keys(JOIN_SRC).forEach(function(id){
   var e=document.getElementById(id);
@@ -499,6 +518,7 @@ function switchTab(t){
   setNav(t==='p'?'nav-c':t==='a'?'nav-a':'nav-b');
   if(t==='a')renderAcc();
   if(t==='b')renderBlog();
+  ga('ver_seccion',{seccion:t==='p'?'peces':t==='a'?'accesorios':'blog'});
 }
 
 // Animación de entrada al hacer scroll
