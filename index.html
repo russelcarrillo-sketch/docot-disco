@@ -187,6 +187,11 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
       <div class="card" id="d-top-list"></div>
     </div>
     <div class="div"></div>
+    <div class="sec">🛒 Tienda en línea</div>
+    <div class="card">
+      <button class="btn pr w" style="margin-bottom:0" onclick="go('pg-pedidos')">📦 Ver pedidos en línea</button>
+    </div>
+    <div class="div"></div>
     <div class="sec">✂️ Corte de importación</div>
     <div class="card">
       <div id="d-periodo" style="font-size:13px;color:var(--tx2);margin-bottom:12px">—</div>
@@ -206,6 +211,12 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 <div class="page" id="pg-cortes">
   <div class="ph"><button class="back" onclick="go('pg-dash')">←</button><div><h1>Cortes de importación</h1><small>Historial por periodo</small></div></div>
   <div class="p" id="cortes-list"></div>
+</div>
+
+<!-- PEDIDOS EN LÍNEA -->
+<div class="page" id="pg-pedidos">
+  <div class="ph"><button class="back" onclick="go('pg-dash')">←</button><div style="flex:1"><h1>Pedidos en línea</h1><small>Tienda Hygger</small></div><button class="btn df" style="min-height:36px;padding:7px 12px;font-size:12px;flex-shrink:0" onclick="renderPedidos()">🔄</button></div>
+  <div class="p" id="ped-list"></div>
 </div>
 
 <!-- INVENTARIO -->
@@ -289,6 +300,11 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
   <div class="p">
     <div class="card">
       <div class="fld"><label class="lbl">Número de WhatsApp (con código de país, sin +)</label><input id="hcfg-wa" placeholder="Ej: 523310934314" type="tel"></div>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-bottom:10px">🚚 Envíos de la tienda en línea</div>
+      <div class="fld"><label class="lbl">Costo de envío ($)</label><input id="hcfg-envio" type="number" placeholder="Ej: 199"></div>
+      <div class="fld"><label class="lbl">Envío GRATIS en compras desde ($) — deja vacío para no ofrecerlo</label><input id="hcfg-gratis" type="number" placeholder="Ej: 1500"></div>
     </div>
     <button class="btn so w" onclick="saveHygConfig()">Guardar</button>
     <div class="toast" id="toast-hcfg">✓ Guardado</div>
@@ -564,7 +580,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {getFirestore,doc,setDoc,getDoc,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {getFirestore,doc,setDoc,getDoc,deleteDoc,updateDoc,collection,getDocs} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import {getStorage,ref,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
@@ -841,7 +857,8 @@ const NAV_MAP={
   'pg-ap':'nb-ap','pg-nap':'nb-ap','pg-apd':'nb-ap','pg-ape':'nb-ap',
   'pg-gastos':'nb-g',
   'pg-blog':'nb-blog',
-  'pg-cortes':'nb-dash'
+  'pg-cortes':'nb-dash',
+  'pg-pedidos':'nb-dash'
 };
 window.go=function(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -857,6 +874,7 @@ window.go=function(id){
   if(id==='pg-gastos')renderGastos();
   if(id==='pg-blog')renderBlogAdmin();
   if(id==='pg-cortes')renderCortes();
+  if(id==='pg-pedidos')renderPedidos();
   if(id==='pg-nap')initNap();
   if(id==='pg-bajas')initBajas();
   if(id==='pg-hv')renderHV();
@@ -1252,10 +1270,14 @@ window.delHygVar=async function(vid){
 
 window.openHygConfig=function(){
   document.getElementById('hcfg-wa').value=HYGDB.whatsapp||'';
+  document.getElementById('hcfg-envio').value=HYGDB.envioCosto||'';
+  document.getElementById('hcfg-gratis').value=HYGDB.envioGratisDesde||'';
   go('pg-hconfig');
 };
 window.saveHygConfig=async function(){
   HYGDB.whatsapp=document.getElementById('hcfg-wa').value.trim();
+  HYGDB.envioCosto=parseFloat(document.getElementById('hcfg-envio').value)||0;
+  HYGDB.envioGratisDesde=parseFloat(document.getElementById('hcfg-gratis').value)||0;
   await saveHyg();toast('toast-hcfg');setTimeout(()=>{go('pg-inv');iTab('a')},1200);
 };
 
@@ -1568,6 +1590,61 @@ window.deshacerCorte=async function(id){
     alert('Error al deshacer: '+e.message+'\nNo se modificó nada.');
     location.reload();
   }
+};
+
+// ── PEDIDOS EN LÍNEA (tienda Hygger) ──────────────────────
+const PED_ST={pendiente_pago:['🕐 Pendiente de pago','var(--amber)'],pagado:['💰 Pagado','var(--green)'],enviado:['🚚 Enviado','var(--teal)'],entregado:['✅ Entregado','var(--green)'],cancelado:['✖ Cancelado','var(--red)']};
+window.renderPedidos=async function(){
+  const el=document.getElementById('ped-list');
+  el.innerHTML='<div class="empty">Cargando pedidos...</div>';
+  try{
+    const snap=await getDocs(collection(db,'pedidos'));
+    let ps=[];
+    snap.forEach(d=>ps.push({id:d.id,...d.data()}));
+    ps.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+    if(!ps.length){el.innerHTML='<div class="empty"><p>Aún no hay pedidos en línea.</p><p style="font-size:12px;margin-top:6px">Cuando alguien compre en la tienda Hygger, aparecerá aquí con su dirección de envío.</p></div>';return;}
+    el.innerHTML=ps.map(p=>{
+      let items=[];
+      try{items=JSON.parse(p.items||'[]')}catch(e){}
+      const st=PED_ST[p.status]||['?','var(--tx3)'];
+      const f=p.fecha?new Date(p.fecha).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+      const dir=[p.direccion,p.colonia,p.ciudad,p.estado,'CP '+(p.cp||'')].filter(Boolean).join(', ');
+      const tel=(p.telefono||'').replace(/\D/g,'');
+      const waTel=tel.length===10?'52'+tel:tel;
+      return `<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px">
+          <div style="min-width:0"><strong style="font-size:14px">${p.nombre||'Sin nombre'}</strong><div style="font-size:11px;color:var(--tx3)">${p.id} · ${f}</div></div>
+          <span class="bdg" style="color:${st[1]};border-color:${st[1]};flex-shrink:0">${st[0]}</span>
+        </div>
+        ${items.map(i=>`<div style="font-size:12px;color:var(--tx2)">${i.cantidad}x ${i.nombre} — ${fmt(i.precio)}</div>`).join('')}
+        <div style="font-size:12px;color:var(--tx2);margin-top:6px">📍 ${dir}</div>
+        ${p.referencias?`<div style="font-size:11.5px;color:var(--tx3)">Ref: ${p.referencias}</div>`:''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-size:12px;color:var(--tx3)">Envío ${fmt(p.envio||0)}</span>
+          <strong style="color:var(--green);font-size:16px">${fmt(p.total||0)}</strong>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+          <select onchange="updPedido('${p.id}',this.value)" style="flex:1;min-height:38px">
+            ${Object.keys(PED_ST).map(k=>`<option value="${k}" ${p.status===k?'selected':''}>${PED_ST[k][0]}</option>`).join('')}
+          </select>
+          <a href="https://wa.me/${waTel}" target="_blank" class="btn su" style="min-height:38px;padding:7px 12px;font-size:12px;text-decoration:none">💬</a>
+          <button class="btn da" style="min-height:38px;padding:7px 12px;font-size:12px" onclick="delPedido('${p.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    console.error(e);
+    el.innerHTML='<div class="empty" style="color:var(--red)">Error al cargar pedidos: '+e.message+'</div>';
+  }
+};
+window.updPedido=async function(id,st){
+  try{await updateDoc(doc(db,'pedidos',id),{status:st});}
+  catch(e){alert('No se pudo actualizar: '+e.message);renderPedidos();}
+};
+window.delPedido=async function(id){
+  if(!confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.'))return;
+  try{await deleteDoc(doc(db,'pedidos',id));renderPedidos();}
+  catch(e){alert('No se pudo eliminar: '+e.message);}
 };
 window.delV=async function(id){if(confirm('¿Borrar esta venta?')){DB.ventas=DB.ventas.filter(v=>v.id!==id);await save();renderHV()}};
 
