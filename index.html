@@ -261,8 +261,14 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
           <option value="Bombas">💨 Bombas</option>
           <option value="Accesorios">🔧 Accesorios</option>
           <option value="Sustratos">🪨 Sustratos</option>
+          <option value="Otros">📦 Otros</option>
         </select>
       </div>
+      <div class="g2">
+        <div class="fld"><label class="lbl">Precio ($) *</label><input id="hp-precio" type="number" placeholder="Ej: 899"></div>
+        <div class="fld"><label class="lbl">Stock (piezas)</label><input id="hp-stock" type="number" placeholder="Ej: 5"></div>
+      </div>
+      <div style="font-size:11px;color:var(--tx3);margin:-6px 0 10px">Si el producto tiene varias versiones (tamaños, watts), guárdalo y luego usa "Variantes" para agregar cada una con su precio.</div>
       <div class="fld"><label class="lbl">Descripción / Características</label><textarea id="hp-desc" rows="4" style="width:100%;resize:vertical;font-family:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--bd2);border-radius:var(--rs);background:var(--sf2);color:var(--tx);outline:none"></textarea></div>
     </div>
     <button class="btn so w" onclick="saveHygProd()">Guardar producto</button>
@@ -1202,16 +1208,35 @@ window.openHygEdit=function(id){
   document.getElementById('hp-mod').value=p?p.modelo:'';
   document.getElementById('hp-cat').value=p?p.categoria:'Lámparas';
   document.getElementById('hp-desc').value=p?p.descripcion:'';
+  // Precio/stock: si tiene 1 sola variante se edita directo aquí
+  const v1=p&&(p.variantes||[]).length===1?p.variantes[0]:null;
+  document.getElementById('hp-precio').value=v1?v1.precio:'';
+  document.getElementById('hp-stock').value=v1?v1.stock:'';
+  const multi=p&&(p.variantes||[]).length>1;
+  document.getElementById('hp-precio').disabled=multi;
+  document.getElementById('hp-stock').disabled=multi;
+  document.getElementById('hp-precio').placeholder=multi?'Varias variantes':'Ej: 899';
   go('pg-hadd');
 };
 
 window.saveHygProd=async function(){
   const n=document.getElementById('hp-nom').value.trim();if(!n)return;
   if(!HYGDB.productos)HYGDB.productos=[];
+  const precio=parseFloat(document.getElementById('hp-precio').value)||0;
+  const stock=parseInt(document.getElementById('hp-stock').value)||0;
   if(editHygId){
-    HYGDB.productos=HYGDB.productos.map(p=>p.id!==editHygId?p:{...p,nombre:n,modelo:document.getElementById('hp-mod').value.trim(),categoria:document.getElementById('hp-cat').value,descripcion:document.getElementById('hp-desc').value.trim()});
+    HYGDB.productos=HYGDB.productos.map(p=>{
+      if(p.id!==editHygId)return p;
+      const upd={...p,nombre:n,modelo:document.getElementById('hp-mod').value.trim(),categoria:document.getElementById('hp-cat').value,descripcion:document.getElementById('hp-desc').value.trim()};
+      // Con 0 o 1 variantes, el precio/stock del formulario manda
+      const vars=upd.variantes||[];
+      if(vars.length<=1&&precio>0){
+        upd.variantes=[{id:vars[0]?vars[0].id:uid(),desc:vars[0]?(vars[0].desc||'Estándar'):'Estándar',precio:precio,stock:stock}];
+      }
+      return upd;
+    });
   } else {
-    HYGDB.productos.push({id:uid(),nombre:n,modelo:document.getElementById('hp-mod').value.trim(),categoria:document.getElementById('hp-cat').value,descripcion:document.getElementById('hp-desc').value.trim(),variantes:[],imgs:[]});
+    HYGDB.productos.push({id:uid(),nombre:n,modelo:document.getElementById('hp-mod').value.trim(),categoria:document.getElementById('hp-cat').value,descripcion:document.getElementById('hp-desc').value.trim(),variantes:precio>0?[{id:uid(),desc:'Estándar',precio:precio,stock:stock}]:[],imgs:[]});
   }
   await saveHyg();toast('toast-hadd');setTimeout(()=>{go('pg-inv');iTab('a')},1500);
 };
