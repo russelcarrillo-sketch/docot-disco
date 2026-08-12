@@ -106,6 +106,14 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 .pthumb{width:58px;height:58px;object-fit:cover;border-radius:8px;border:2px solid transparent;background:var(--bg);cursor:pointer;flex-shrink:0;opacity:.6;transition:opacity .15s,border-color .15s}
 .pthumb.on,.pthumb:hover{opacity:1;border-color:var(--teal)}
 .pph{height:160px;background:var(--sf2);display:flex;align-items:center;justify-content:center}
+/* Vista de producto en 2 columnas (computadora): imagen izquierda, compra fija a la derecha */
+@media(min-width:1000px){
+  .pcols{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(330px,1fr);gap:1.8rem;max-width:1500px;margin:0 auto;padding:1.4rem 1.8rem 3rem;align-items:start}
+  .pcols .piw{border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
+  .pcols .pimg{max-width:100%}
+  .pcols .pthumbs{background:transparent;padding:10px 0 0}
+  .pcols .pbody{position:sticky;top:5.2rem;background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:1.3rem 1.4rem;max-height:calc(100vh - 6.6rem);overflow-y:auto}
+}
 .pbody{padding:1rem}
 .vrow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}
 .vrow:last-child{border-bottom:none}
@@ -513,6 +521,7 @@ html{scroll-behavior:smooth}
     <button class="pclose" onclick="closePanel()">Atras</button>
     <div><div style="font-size:17px;font-weight:700" id="pan-tit"></div><div style="font-size:12px;color:var(--teal);margin-top:2px" id="pan-mod"></div></div>
   </div>
+  <div class="pcols">
   <div id="pan-img-w"></div>
   <div class="pbody">
     <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Elige tu opción</div>
@@ -521,6 +530,7 @@ html{scroll-behavior:smooth}
     <div id="pan-info" style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.8rem 1rem;margin-bottom:18px;font-size:13px;color:var(--tx3);line-height:1.7"></div>
     <button class="btn-vercarrito" onclick="closePanel();setTimeout(openCart,320)" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:rgba(0,212,180,.1);border:1.5px solid rgba(0,212,180,.5);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;color:var(--teal);cursor:pointer;font-family:inherit">🛒 Ver mi carrito</button>
     <div style="text-align:center;font-size:11.5px;color:var(--tx3);margin-top:12px;line-height:1.6">🔒 Compra segura con Mercado Pago<br>Tarjeta · OXXO · Meses sin intereses · Envío a todo México</div>
+  </div>
   </div>
 </div>
 
