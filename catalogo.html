@@ -96,7 +96,13 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 .panel.open{transform:translateY(0)}
 .phdr{display:flex;align-items:center;gap:12px;padding:1rem 1rem .8rem;border-bottom:1px solid var(--bd);background:var(--bg);position:sticky;top:0;z-index:1}
 .pclose{border:none;background:none;color:var(--tx2);font-size:22px;padding:4px;min-width:40px;min-height:40px;cursor:pointer}
-.pimg{width:100%;max-height:220px;object-fit:cover;display:block}
+.piw{position:relative;background:var(--sf2);display:flex;align-items:center;justify-content:center;padding:10px}
+.pimg{display:block;width:auto;max-width:100%;max-height:min(60vh,420px);object-fit:contain;cursor:zoom-in;margin:0 auto}
+.pzoom{position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 9px;font-size:12px;color:#fff;font-weight:600;pointer-events:none;display:flex;align-items:center;gap:5px}
+.pthumbs{display:flex;gap:8px;overflow-x:auto;padding:10px 1rem 2px;background:var(--sf2);scrollbar-width:none}
+.pthumbs::-webkit-scrollbar{display:none}
+.pthumb{width:58px;height:58px;object-fit:cover;border-radius:8px;border:2px solid transparent;background:var(--bg);cursor:pointer;flex-shrink:0;opacity:.6;transition:opacity .15s,border-color .15s}
+.pthumb.on,.pthumb:hover{opacity:1;border-color:var(--teal)}
 .pph{height:160px;background:var(--sf2);display:flex;align-items:center;justify-content:center}
 .pbody{padding:1rem}
 .vrow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}
@@ -793,8 +799,15 @@ function openPanel(id){
   document.getElementById('pan-tit').textContent=p.nombre;
   document.getElementById('pan-mod').textContent=p.modelo||'';
   var iw=document.getElementById('pan-img-w');
-  if((p.imgs||[]).length){
-    iw.innerHTML='<img class="pimg" src="'+p.imgs[0]+'" alt="'+p.nombre+'">';
+  PAN_IMGS=p.imgs||[];PAN_IDX=0;PAN_NOM=p.nombre;PAN_INFO=p.modelo||'';
+  if(PAN_IMGS.length){
+    var ih='<div class="piw"><img class="pimg" id="pan-img" src="'+PAN_IMGS[0]+'" alt="'+p.nombre+'" onclick="panZoom()"><div class="pzoom"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg>Ampliar</div></div>';
+    if(PAN_IMGS.length>1){
+      ih+='<div class="pthumbs">'+PAN_IMGS.map(function(u,i){
+        return '<img class="pthumb'+(i===0?' on':'')+'" src="'+u+'" alt="" loading="lazy" onclick="panImg('+i+')">';
+      }).join('')+'</div>';
+    }
+    iw.innerHTML=ih;
   } else {
     iw.innerHTML='<div class="pph"><div style="font-size:64px;opacity:.3">📦</div></div>';
   }
@@ -818,7 +831,13 @@ function closePanel(){overlayClose();}
 
 // ── El botón atrás del navegador cierra paneles, no la página ──
 function domCloseAll(){
-  document.getElementById('lb').classList.remove('open');
+  var lb=document.getElementById('lb');
+  // Si la foto ampliada está abierta, cierra solo eso (el producto sigue abierto detrás)
+  if(lb.classList.contains('open')){
+    lb.classList.remove('open');
+    if(!document.querySelector('.panel.open'))document.body.style.overflow='';
+    return;
+  }
   document.getElementById('panel').classList.remove('open');
   document.getElementById('blog-panel').classList.remove('open');
   document.getElementById('cart-panel').classList.remove('open');
@@ -832,7 +851,31 @@ function overlayClose(){
   else{domCloseAll();}
 }
 
+// Imágenes del panel de producto
+var PAN_IMGS=[],PAN_IDX=0,PAN_NOM='',PAN_INFO='';
+window.panImg=function(i){
+  PAN_IDX=i;
+  var m=document.getElementById('pan-img');
+  if(m)m.src=PAN_IMGS[i];
+  document.querySelectorAll('.pthumb').forEach(function(t,j){t.classList.toggle('on',j===i);});
+};
+window.panZoom=function(){
+  if(!PAN_IMGS.length)return;
+  openLb(PAN_IMGS,PAN_IDX,PAN_NOM,PAN_INFO);
+};
+
 var lbImgs=[],lbIdx=0;
+function openLb(imgs,idx,name,info){
+  lbImgs=imgs;
+  document.getElementById('lb-name').textContent=name||'';
+  document.getElementById('lb-info').textContent=info||'';
+  var dots=document.getElementById('lb-dots');
+  dots.innerHTML=imgs.length>1?imgs.map(function(_,i){return '<button class="lbdot" onclick="event.stopPropagation();lbShow('+i+')"></button>';}).join(''):'';
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow='hidden';
+  lbShow(idx||0);
+  overlayOpen();
+}
 function lbShow(i){
   lbIdx=i;
   document.getElementById('lb-img').src=lbImgs[i];
@@ -848,15 +891,10 @@ document.addEventListener('click',function(e){
   if(img){
     var card=img.closest('.fc');
     var raw=img.dataset.imgs;
-    lbImgs=raw?JSON.parse(decodeURIComponent(raw)):[img.src];
-    document.getElementById('lb-name').textContent=card.querySelector('.fname')?card.querySelector('.fname').textContent:'';
-    document.getElementById('lb-info').textContent=(card.querySelector('.ftalla')?card.querySelector('.ftalla').textContent:'')+' | '+(card.querySelector('.fprice')?card.querySelector('.fprice').textContent:'');
-    var dots=document.getElementById('lb-dots');
-    dots.innerHTML=lbImgs.length>1?lbImgs.map(function(_,i){return '<button class="lbdot" onclick="event.stopPropagation();lbShow('+i+')"></button>';}).join(''):'';
-    document.getElementById('lb').classList.add('open');
-    document.body.style.overflow='hidden';
-    lbShow(0);
-    overlayOpen();
+    var imgs=raw?JSON.parse(decodeURIComponent(raw)):[img.src];
+    var nom=card&&card.querySelector('.fname')?card.querySelector('.fname').textContent:'';
+    var inf=card?((card.querySelector('.ftalla')?card.querySelector('.ftalla').textContent:'')+' | '+(card.querySelector('.fprice')?card.querySelector('.fprice').textContent:'')):'';
+    openLb(imgs,0,nom,inf);
   }
 });
 function closeLb(){overlayClose();}
