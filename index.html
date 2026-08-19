@@ -229,9 +229,12 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
   <div id="inv-peces" class="p" style="padding-top:1rem">
     <div class="r2">
       <button class="btn df" onclick="go('pg-nvar')">+ Nueva variedad</button>
-      <button class="btn pr" id="btn-imp" onclick="go('pg-imp')">📦 Importar</button>
+      <button class="btn pr" id="btn-imp" onclick="newImp()">📦 Importar</button>
     </div>
-    <button class="btn da w" onclick="go('pg-bajas')">💀 Registrar bajas</button>
+    <div class="r2">
+      <button class="btn df" onclick="go('pg-himp')">📋 Mis importaciones</button>
+      <button class="btn da" onclick="go('pg-bajas')">💀 Registrar bajas</button>
+    </div>
     <div id="inv-list"></div>
   </div>
   <div id="inv-acc" class="p" style="padding-top:1rem;display:none">
@@ -389,14 +392,26 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 </div>
 
 <!-- IMPORTAR -->
+<!-- HISTORIAL DE IMPORTACIONES -->
+<div class="page" id="pg-himp">
+  <div class="ph"><button class="back" onclick="go('pg-inv')">←</button><div><h1>Mis importaciones</h1><small>Corrige cantidades o costos</small></div></div>
+  <div class="p">
+    <div class="card" style="background:var(--tbg);border-color:var(--tbd);font-size:12.5px;color:var(--tx2);line-height:1.6;margin-bottom:12px">
+      💡 Si te equivocaste al capturar (pediste 10 y llegaron 5), <strong style="color:var(--teal)">edita aquí</strong> para corregir el costo.<br>
+      Si un pez <strong style="color:var(--red)">se murió</strong>, usa "Registrar bajas" — eso sí cuenta como pérdida.
+    </div>
+    <div id="himp-list"></div>
+  </div>
+</div>
+
 <div class="page" id="pg-imp">
-  <div class="ph"><button class="back" onclick="go('pg-inv')">←</button><div><h1>Registrar importación</h1></div></div>
+  <div class="ph"><button class="back" onclick="impBack()">←</button><div><h1 id="imp-tit">Registrar importación</h1></div></div>
   <div class="p">
     <div class="card fld"><label class="lbl">Fecha</label><input id="imp-f" type="date"></div>
     <div id="imp-lotes"></div>
     <button class="btn df w" onclick="addLote()">+ Otro lote</button>
     <div class="card fld"><label class="lbl">Notas</label><textarea id="imp-n" style="min-height:48px;resize:vertical" placeholder="Proveedor..."></textarea></div>
-    <button class="btn so w" onclick="saveImp()">Guardar importación</button>
+    <button class="btn so w" id="imp-btn" onclick="saveImp()">Guardar importación</button>
     <div class="toast" id="toast-imp">✓ Importación guardada</div>
   </div>
 </div>
@@ -645,7 +660,7 @@ let DB={catalogo:[],importaciones:[],ventas:[],apartados:[],gastos:[],bajas:[]};
 let IMGS={};
 let ACCDB={},HYGDB={productos:[],whatsapp:'523310934314'};
 let BLOGDB={posts:[]};
-let editCatId=null,editApId=null,editAccId=null,imgCatId=null,editHygId=null,editHygVarsId=null,imgHygId=null;
+let editCatId=null,editApId=null,editAccId=null,imgCatId=null,editHygId=null,editHygVarsId=null,imgHygId=null,editImpId=null;
 
 function hoy(){return new Date().toISOString().split('T')[0]}
 function fmt(n){return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -858,7 +873,7 @@ function renderBlogAdmin(){
 // PAGE NAV
 const NAV_MAP={
   'pg-dash':'nb-dash','pg-inv':'nb-inv','pg-nvar':'nb-inv','pg-evar':'nb-inv',
-  'pg-imp':'nb-inv','pg-bajas':'nb-inv','pg-acc':'nb-inv','pg-hadd':'nb-inv','pg-hvars':'nb-inv',
+  'pg-imp':'nb-inv','pg-bajas':'nb-inv','pg-acc':'nb-inv','pg-hadd':'nb-inv','pg-hvars':'nb-inv','pg-himp':'nb-inv',
   'pg-ventas':'nb-v','pg-hv':'nb-v',
   'pg-ap':'nb-ap','pg-nap':'nb-ap','pg-apd':'nb-ap','pg-ape':'nb-ap',
   'pg-gastos':'nb-g',
@@ -875,6 +890,7 @@ window.go=function(id){
   if(id==='pg-dash')renderDash();
   if(id==='pg-inv')renderInv();
   if(id==='pg-imp')initImp();
+  if(id==='pg-himp')renderHistImp();
   if(id==='pg-ventas')initVenta();
   if(id==='pg-ap')renderAp();
   if(id==='pg-gastos')renderGastos();
@@ -1117,8 +1133,19 @@ window.saveEdit=async function(){
 };
 
 // IMPORTAR
-function initImp(){document.getElementById('imp-f').value=hoy();document.getElementById('imp-n').value='';document.getElementById('imp-lotes').innerHTML='';addLote()}
-window.addLote=function(){
+function initImp(){
+  const imp=editImpId?DB.importaciones.find(i=>i.id===editImpId):null;
+  document.getElementById('imp-tit').textContent=imp?'Editar importación':'Registrar importación';
+  document.getElementById('imp-btn').textContent=imp?'Guardar cambios':'Guardar importación';
+  document.getElementById('imp-f').value=imp?imp.fecha:hoy();
+  document.getElementById('imp-n').value=imp?(imp.notas||''):'';
+  document.getElementById('imp-lotes').innerHTML='';
+  if(imp&&(imp.items||[]).length)imp.items.forEach(it=>addLote(it));
+  else addLote();
+}
+window.newImp=function(){editImpId=null;go('pg-imp')};
+window.impBack=function(){const t=editImpId?'pg-himp':'pg-inv';editImpId=null;go(t)};
+window.addLote=function(it){
   const idx=document.querySelectorAll('.lote-b').length;
   const opts=DB.catalogo.map(c=>`<option value="${c.id}">${c.nombre} – ${c.talla}</option>`).join('');
   const d=document.createElement('div');d.className='card lote-b';
@@ -1128,15 +1155,91 @@ window.addLote=function(){
   <div class="l-sub" style="display:none;background:var(--sf2);border-radius:var(--rs);padding:7px 10px;font-size:12px;color:var(--tx2)"></div>`;
   document.getElementById('imp-lotes').appendChild(d);
   d.querySelectorAll('.l-q,.l-c').forEach(i=>i.addEventListener('input',()=>lSub(d)));
+  if(it&&it.catId){
+    d.querySelector('.l-cat').value=it.catId;
+    d.querySelector('.l-q').value=it.cantidad;
+    d.querySelector('.l-c').value=it.costo;
+    lSub(d);
+  }
 };
 window.rnLotes=function(){document.querySelectorAll('.lote-b').forEach((b,i)=>b.querySelector('span').textContent=`LOTE ${i+1}`)};
 window.lAuto=function(s){const cat=DB.catalogo.find(c=>c.id===s.value);if(cat)s.closest('.lote-b').querySelector('.l-c').value=cat.costo;lSub(s.closest('.lote-b'))};
 function lSub(d){const q=parseInt(d.querySelector('.l-q').value)||0,c=parseFloat(d.querySelector('.l-c').value)||0,el=d.querySelector('.l-sub');if(q>0&&c>0){el.style.display='block';el.textContent='Subtotal: '+fmt(q*c)}else el.style.display='none'}
 window.saveImp=async function(){
   const items=[];document.querySelectorAll('.lote-b').forEach(b=>{const cid=b.querySelector('.l-cat').value,q=parseInt(b.querySelector('.l-q').value)||0,c=parseFloat(b.querySelector('.l-c').value)||0;if(cid&&q>0){const cat=DB.catalogo.find(x=>x.id===cid);items.push({catId:cid,nombre:cat?cat.nombre:'',cantidad:q,costo:c})}});
-  if(!items.length)return;
+  if(!items.length){alert('Agrega al menos un lote con variedad y cantidad');return;}
+  if(editImpId){
+    const imp=DB.importaciones.find(i=>i.id===editImpId);
+    if(!imp)return;
+    // Verificar que al bajar cantidades el stock no quede negativo
+    const oldQ={},newQ={};
+    (imp.items||[]).forEach(it=>{oldQ[it.catId]=(oldQ[it.catId]||0)+it.cantidad});
+    items.forEach(it=>{newQ[it.catId]=(newQ[it.catId]||0)+it.cantidad});
+    const cids=[...new Set(Object.keys(oldQ).concat(Object.keys(newQ)))];
+    for(const cid of cids){
+      const delta=(newQ[cid]||0)-(oldQ[cid]||0);
+      if(delta<0){
+        const disp=getStock(cid);
+        if(disp+delta<0){
+          const c=DB.catalogo.find(x=>x.id===cid);
+          alert('No puedes bajar tanto "'+(c?c.nombre+' '+c.talla:cid)+'".\n\nYa vendiste o apartaste peces de esa variedad.\nSolo te quedan '+disp+' disponibles, así que como máximo puedes quitar '+disp+'.');
+          return;
+        }
+      }
+    }
+    imp.fecha=document.getElementById('imp-f').value;
+    imp.notas=document.getElementById('imp-n').value;
+    imp.items=items;
+    await save();
+    editImpId=null;
+    toast('toast-imp');
+    setTimeout(()=>go('pg-himp'),1200);
+    return;
+  }
   DB.importaciones.push({id:uid(),fecha:document.getElementById('imp-f').value,notas:document.getElementById('imp-n').value,items});
   await save();toast('toast-imp');setTimeout(()=>go('pg-inv'),1500);
+};
+
+// ── HISTORIAL DE IMPORTACIONES ──
+window.openImpEdit=function(id){editImpId=id;go('pg-imp')};
+window.renderHistImp=function(){
+  const el=document.getElementById('himp-list');
+  const imps=[...DB.importaciones].reverse();
+  if(!imps.length){el.innerHTML='<div class="empty"><p>No hay importaciones registradas</p></div>';return}
+  el.innerHTML=imps.map(i=>{
+    const tot=(i.items||[]).reduce((s,it)=>s+it.cantidad*it.costo,0);
+    const pz=(i.items||[]).reduce((s,it)=>s+it.cantidad,0);
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px">
+        <div style="min-width:0"><strong style="font-size:14px">${fdate(i.fecha)}</strong>${i.notas?`<div style="font-size:11.5px;color:var(--tx3);line-height:1.4">${i.notas}</div>`:''}</div>
+        <div style="text-align:right;flex-shrink:0"><strong style="color:var(--red)">${fmt(tot)}</strong><div style="font-size:11px;color:var(--tx3)">${pz} peces</div></div>
+      </div>
+      ${(i.items||[]).map(it=>`<div class="irow"><span>${it.cantidad}x ${it.nombre}</span><span style="color:var(--tx3)">${fmt(it.costo)} c/u</span></div>`).join('')}
+      <div class="r2" style="margin:12px 0 0">
+        <button class="btn df" onclick="openImpEdit('${i.id}')">✏️ Editar</button>
+        <button class="btn da" onclick="delImp('${i.id}')">🗑 Eliminar</button>
+      </div>
+    </div>`;
+  }).join('');
+};
+window.delImp=async function(id){
+  const imp=DB.importaciones.find(i=>i.id===id);
+  if(!imp)return;
+  const porCat={};
+  (imp.items||[]).forEach(it=>{porCat[it.catId]=(porCat[it.catId]||0)+it.cantidad});
+  for(const cid of Object.keys(porCat)){
+    const disp=getStock(cid);
+    if(disp-porCat[cid]<0){
+      const c=DB.catalogo.find(x=>x.id===cid);
+      alert('No se puede eliminar esta importación.\n\nYa vendiste o apartaste peces de "'+(c?c.nombre+' '+c.talla:cid)+'".\n\nEdítala para bajar la cantidad en lugar de eliminarla.');
+      return;
+    }
+  }
+  const tot=(imp.items||[]).reduce((s,it)=>s+it.cantidad*it.costo,0);
+  const pz=(imp.items||[]).reduce((s,it)=>s+it.cantidad,0);
+  if(!confirm('¿Eliminar esta importación?\n\nSe descontarán '+fmt(tot)+' del costo total y '+pz+' peces del inventario.\n\nEsta acción no se puede deshacer.'))return;
+  DB.importaciones=DB.importaciones.filter(i=>i.id!==id);
+  await save();renderHistImp();
 };
 
 // BAJAS
