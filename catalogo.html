@@ -81,7 +81,22 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 @media(min-width:900px){.agrid{grid-template-columns:repeat(4,1fr);gap:18px}}
 @media(min-width:1300px){.agrid{grid-template-columns:repeat(5,1fr);gap:20px}}
 .acard{cursor:pointer}
-.adesc{font-size:12px;color:var(--tx2);line-height:1.5;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.9em}
+/* Chips de filtro (categorías y tallas) */
+.chips{display:flex;gap:7px;overflow-x:auto;padding:1px 0 3px;scrollbar-width:none;-ms-overflow-style:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .15s,border-color .15s,color .15s}
+.chip:hover{border-color:rgba(0,212,180,.45);color:var(--tx)}
+.chip.on{background:rgba(0,212,180,.16);border-color:var(--teal);color:var(--teal)}
+/* Botón de agregar directo en la tarjeta */
+.addcard{width:100%;margin-top:9px;background:linear-gradient(135deg,var(--teal),#00a0c8);color:#04111e;border:none;border-radius:9px;padding:9px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:'Sora',-apple-system,sans-serif;transition:opacity .15s}
+.addcard:hover{opacity:.87}
+.addcard:disabled{background:var(--sf2);color:var(--tx3);cursor:not-allowed}
+/* Aviso flotante al agregar */
+#add-toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%) translateY(18px);z-index:160;background:linear-gradient(135deg,var(--teal),#00b89e);color:#04111e;font-weight:800;font-size:13.5px;padding:11px 22px;border-radius:24px;box-shadow:0 8px 30px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;font-family:'Sora',-apple-system,sans-serif}
+#add-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Variante agotada */
+.vrow.out{opacity:.45}
+.adesc{font-size:12px;color:var(--tx2);line-height:1.5;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.9em;text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 .chdr{padding:14px 0 8px;border-bottom:1px solid var(--bd);margin-bottom:10px;font-size:14px;font-weight:700;color:var(--teal)}
 .ac{background:var(--sf);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:10px;cursor:pointer;transition:border-color .15s,transform .15s;display:flex;align-items:stretch}
 .ac:hover{border-color:rgba(0,212,180,.4);transform:translateY(-1px)}
@@ -396,11 +411,17 @@ html{scroll-behavior:smooth}
   <div class="fbar" style="flex-direction:column;align-items:stretch;gap:8px">
     <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--tx2)">Disponibles hoy</span><span class="fbdg" id="cnt-p">...</span></div>
     <input id="fish-search" type="search" placeholder="Buscar pez..." style="font-size:14px;padding:7px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--sf2);color:var(--tx);outline:none;width:100%" oninput="filterFish(this.value)">
+    <div class="chips" id="fish-tallas"></div>
   </div>
   <div id="fish-list"><div class="fgrid"><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div><div class="sk"><div class="ski"></div><div class="skl"></div><div class="skl s2"></div></div></div></div>
 </div>
 <div id="sec-a" style="display:none">
-  <div class="fbar"><span style="font-size:13px;color:var(--tx2)">Productos Hygger</span><span class="fbdg" id="cnt-a">...</span></div>
+  <div class="fbar" style="flex-direction:column;align-items:stretch;gap:9px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--tx2)">Productos Hygger</span><span class="fbdg" id="cnt-a">...</span></div>
+    <div id="envio-a"></div>
+    <input id="acc-search" type="search" placeholder="Buscar accesorio..." style="font-size:14px;padding:7px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--sf2);color:var(--tx);outline:none;width:100%" oninput="filterAcc(this.value)">
+    <div class="chips" id="acc-cats"></div>
+  </div>
   <div class="asec" id="acc-list"></div>
 </div>
 <div id="sec-b" style="display:none">
@@ -444,6 +465,7 @@ html{scroll-behavior:smooth}
   </div>
   <div class="fbase">© Doctor Disco — Premium Care · Distribuidor Oficial Hygger</div>
 </div>
+<div id="add-toast">✓ Agregado al carrito</div>
 <button class="cart-float" id="cart-float" onclick="openCart()">🛒 Carrito<span class="cart-count" id="cart-count">0</span></button>
 <div id="comm-toast">
   <button class="ct-x" onclick="hideCommToast()">×</button>
@@ -527,7 +549,7 @@ html{scroll-behavior:smooth}
     <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Elige tu opción</div>
     <div id="pan-vars" style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.8rem 1rem;margin-bottom:14px"></div>
     <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Informacion</div>
-    <div id="pan-info" style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.8rem 1rem;margin-bottom:18px;font-size:13px;color:var(--tx3);line-height:1.7"></div>
+    <div id="pan-info" style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.85rem 1rem;margin-bottom:18px;font-size:13px;color:var(--tx2);line-height:1.75;text-align:justify;hyphens:auto;-webkit-hyphens:auto"></div>
     <button class="btn-vercarrito" onclick="closePanel();setTimeout(openCart,320)" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:rgba(0,212,180,.1);border:1.5px solid rgba(0,212,180,.5);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;color:var(--teal);cursor:pointer;font-family:inherit">🛒 Ver mi carrito</button>
     <div style="text-align:center;font-size:11.5px;color:var(--tx3);margin-top:12px;line-height:1.6">🔒 Compra segura con Mercado Pago<br>Tarjeta · OXXO · Meses sin intereses · Envío a todo México</div>
   </div>
@@ -619,11 +641,32 @@ function revealAll(){
   els.forEach(function(el){revObs.observe(el);});
 }
 
+// Las tallas vienen escritas de varias formas (4, 4", 4 ") — se unifican para agrupar bien
+function tallaNorm(t){return String(t||'').replace(/["'“”″\s]/g,'');}
+function tallaLabel(t){var n=tallaNorm(t);return n?n+'"':'';}
+function tallaNum(t){var m=tallaNorm(t).match(/[\d.]+/);return m?parseFloat(m[0]):99;}
 function renderFish(){
   if(!DB)return;
   var tc=document.getElementById('t-cnt');
   if(tc)tc.textContent=DB.catalogo.length+'+';
-  var disp=DB.catalogo.filter(function(c){return getStock(c.id,DB)>0&&(!searchTerm||c.nombre.toLowerCase().indexOf(searchTerm)>=0);});
+  // Chips de talla (solo variedades con stock)
+  var conStock=DB.catalogo.filter(function(c){return getStock(c.id,DB)>0;});
+  var tallas=[];
+  conStock.forEach(function(c){var t=tallaNorm(c.talla);if(t&&tallas.indexOf(t)<0)tallas.push(t);});
+  tallas.sort(function(a,b){return tallaNum(a)-tallaNum(b)});
+  var tEl=document.getElementById('fish-tallas');
+  if(tEl){
+    tEl.innerHTML=tallas.length>1?('<button class="chip'+(fishTalla===''?' on':'')+'" onclick="setTalla(\'\')">Todas las tallas</button>'+
+      tallas.map(function(t){
+        var n=conStock.filter(function(c){return tallaNorm(c.talla)===t;}).length;
+        return '<button class="chip'+(fishTalla===t?' on':'')+'" onclick="setTalla(\''+t.replace(/'/g,"\\'")+'\')">📏 '+tallaLabel(t)+' ('+n+')</button>';
+      }).join('')):'';
+  }
+  var disp=DB.catalogo.filter(function(c){
+    if(getStock(c.id,DB)<=0)return false;
+    if(fishTalla&&tallaNorm(c.talla)!==fishTalla)return false;
+    return !searchTerm||c.nombre.toLowerCase().indexOf(searchTerm)>=0;
+  });
   document.getElementById('cnt-p').textContent=disp.length+' variedad'+(disp.length!==1?'es':'');
   var el=document.getElementById('fish-list');
   if(!disp.length){el.innerHTML='<div class="ctr"><p>No hay peces disponibles</p></div>';return;}
@@ -648,8 +691,9 @@ function renderFish(){
   revealAll();
 }
 
-var searchTerm='';
+var searchTerm='',fishTalla='';
 window.filterFish=function(q){searchTerm=q.toLowerCase();renderFish();};
+window.setTalla=function(t){fishTalla=(fishTalla===t)?'':t;renderFish();};
 
 function populateHeroFish(){
   var el=document.getElementById('hero-fish');
@@ -694,28 +738,61 @@ function addHeroBgFish(){
   });
 }
 
+var ACC_ICONS={'Lámparas':'💡','Calentadores':'🌡️','Filtros':'🔄','Bombas':'💨','Tratamiento de agua':'💧','Limpieza':'🧽','Medición':'🧪','Medios filtrantes':'🪸','Accesorios':'🔧','Sustratos':'🪨','Otros':'📦'};
+var ACC_ORDEN=['Lámparas','Calentadores','Filtros','Bombas','Tratamiento de agua','Medios filtrantes','Limpieza','Medición','Sustratos','Accesorios','Otros'];
+var accSearch='',accCat='';
+window.filterAcc=function(q){accSearch=(q||'').toLowerCase();renderAcc();};
+window.setAccCat=function(c){accCat=(accCat===c)?'':c;renderAcc();};
+
 function renderAcc(){
   var prods=HYGDB.productos||[];
-  var cntEl=document.getElementById('cnt-a');
-  if(cntEl)cntEl.textContent=prods.length+' producto'+(prods.length!==1?'s':'');
   if(!prods.length){
     document.getElementById('acc-list').innerHTML='<div style="text-align:center;padding:3rem 1rem;color:var(--tx3)"><p>Sin productos aún</p></div>';
     return;
   }
-  var icons={'Lámparas':'💡','Calentadores':'🌡️','Filtros':'🔄','Bombas':'💨','Accesorios':'🔧','Sustratos':'🪨','Otros':'📦'};
-  var orden=['Lámparas','Calentadores','Filtros','Bombas','Accesorios','Sustratos','Otros'];
+  // Aviso de envío gratis
+  var eh=document.getElementById('envio-a');
+  if(eh){
+    var gratis=Number(HYGDB.envioGratisDesde)||0, costo=Number(HYGDB.envioCosto)||0;
+    eh.innerHTML=gratis>0?'<div class="envio-hint">🚚 Envío GRATIS en compras desde '+fmt(gratis)+'</div>'
+      :(costo>0?'<div class="envio-hint">🚚 Envío a todo México · '+fmt(costo)+'</div>':'');
+  }
+  // Chips de categoría
+  var todasCats=[];
+  ACC_ORDEN.forEach(function(x){if(prods.some(function(p){return p.categoria===x;}))todasCats.push(x);});
+  prods.forEach(function(p){if(todasCats.indexOf(p.categoria)<0)todasCats.push(p.categoria);});
+  var chipsEl=document.getElementById('acc-cats');
+  if(chipsEl){
+    chipsEl.innerHTML='<button class="chip'+(accCat===''?' on':'')+'" onclick="setAccCat(\'\')">Todo</button>'+
+      todasCats.map(function(x){
+        var n=prods.filter(function(p){return p.categoria===x;}).length;
+        return '<button class="chip'+(accCat===x?' on':'')+'" onclick="setAccCat(\''+x.replace(/'/g,"\\'")+'\')">'+(ACC_ICONS[x]||'📦')+' '+x+' ('+n+')</button>';
+      }).join('');
+  }
+  // Filtrar
+  var vis=prods.filter(function(p){
+    if(accCat&&p.categoria!==accCat)return false;
+    if(!accSearch)return true;
+    return (p.nombre+' '+(p.modelo||'')+' '+(p.descripcion||'')+' '+(p.categoria||'')).toLowerCase().indexOf(accSearch)>=0;
+  });
+  var cntEl=document.getElementById('cnt-a');
+  if(cntEl)cntEl.textContent=vis.length+' producto'+(vis.length!==1?'s':'');
+  if(!vis.length){
+    document.getElementById('acc-list').innerHTML='<div style="text-align:center;padding:3rem 1rem;color:var(--tx3)"><p>No hay productos que coincidan</p></div>';
+    return;
+  }
   var cats=[];
-  orden.forEach(function(c){if(prods.some(function(p){return p.categoria===c;}))cats.push(c);});
-  prods.forEach(function(p){if(cats.indexOf(p.categoria)<0)cats.push(p.categoria);});
+  todasCats.forEach(function(x){if(vis.some(function(p){return p.categoria===x;}))cats.push(x);});
   var h='';
   cats.forEach(function(cat){
-    h+='<div class="chdr">'+(icons[cat]||'📦')+' '+cat+'</div>';
+    h+='<div class="chdr">'+(ACC_ICONS[cat]||'📦')+' '+cat+'</div>';
     h+='<div class="agrid">';
-    prods.filter(function(p){return p.categoria===cat;}).forEach(function(p){
+    vis.filter(function(p){return p.categoria===cat;}).forEach(function(p){
       var vars=p.variantes||[];
-      var conPrecio=vars.filter(function(v){return (v.precio||0)>0;});
+      var conPrecio=[];
+      vars.forEach(function(v,i){if((v.precio||0)>0)conPrecio.push({v:v,i:i});});
       var totalStock=vars.reduce(function(s,v){return s+(v.stock||0);},0);
-      var prices=conPrecio.map(function(v){return v.precio;});
+      var prices=conPrecio.map(function(o){return o.v.precio;});
       var minPrice=prices.length?Math.min.apply(null,prices):0;
       var img=(p.imgs||[])[0]||'';
       var stk='';
@@ -735,6 +812,14 @@ function renderAcc(){
       h+='<div class="fname" style="font-size:14px;margin-top:3px">'+p.nombre+'</div>';
       h+='<div class="adesc">'+(p.descripcion||'')+'</div>';
       h+=precioHtml;
+      // Un solo precio: se agrega directo desde la tarjeta
+      if(conPrecio.length===1){
+        var u=conPrecio[0];
+        if((u.v.stock||0)>0)h+='<button class="addcard" onclick="event.stopPropagation();addToCart(\''+p.id+'\','+u.i+',true)">+ Agregar</button>';
+        else h+='<button class="addcard" disabled onclick="event.stopPropagation()">Agotado</button>';
+      }else if(conPrecio.length>1){
+        h+='<div style="font-size:11px;color:var(--tx3);font-weight:600;margin-top:8px;text-align:center">'+conPrecio.length+' medidas disponibles →</div>';
+      }
       h+='</div></div>';
     });
     h+='</div>';
@@ -742,7 +827,6 @@ function renderAcc(){
   document.getElementById('acc-list').innerHTML=h;
   revealAll();
 }
-
 var BLOG_MAP={};
 function renderBlog(){
   var posts=(BLOGDB.posts||[]).slice().sort(function(a,b){return(b.fecha||'').localeCompare(a.fecha||'');});
@@ -814,12 +898,14 @@ function openPanel(id){
   document.getElementById('pan-tit').textContent=p.nombre;
   document.getElementById('pan-mod').textContent=p.modelo||'';
   var iw=document.getElementById('pan-img-w');
-  PAN_IMGS=p.imgs||[];PAN_IDX=0;PAN_NOM=p.nombre;PAN_INFO=p.modelo||'';
+  PAN_IMGS=p.imgs||[];PAN_NOM=p.nombre;PAN_INFO=p.modelo||'';
+  // Foto 1 = la del catálogo · Foto 2 = la ficha que se abre aquí
+  PAN_IDX=PAN_IMGS.length>1?1:0;
   if(PAN_IMGS.length){
-    var ih='<div class="piw"><img class="pimg" id="pan-img" src="'+PAN_IMGS[0]+'" alt="'+p.nombre+'" onclick="panZoom()" onload="panLoaded(this)"><div class="pzoom"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg>Ampliar</div><div class="pscroll" id="pan-scroll" style="display:none">Desliza para ver más ↓</div></div>';
+    var ih='<div class="piw"><img class="pimg" id="pan-img" src="'+PAN_IMGS[PAN_IDX]+'" alt="'+p.nombre+'" onclick="panZoom()" onload="panLoaded(this)"><div class="pzoom"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg>Ampliar</div><div class="pscroll" id="pan-scroll" style="display:none">Desliza para ver más ↓</div></div>';
     if(PAN_IMGS.length>1){
       ih+='<div class="pthumbs">'+PAN_IMGS.map(function(u,i){
-        return '<img class="pthumb'+(i===0?' on':'')+'" src="'+u+'" alt="" loading="lazy" onclick="panImg('+i+')">';
+        return '<img class="pthumb'+(i===PAN_IDX?' on':'')+'" src="'+u+'" alt="" loading="lazy" onclick="panImg('+i+')">';
       }).join('')+'</div>';
     }
     iw.innerHTML=ih;
@@ -827,17 +913,28 @@ function openPanel(id){
     iw.innerHTML='<div class="pph"><div style="font-size:64px;opacity:.3">📦</div></div>';
   }
   var vars='';
-  (p.variantes||[]).forEach(function(v,vi){
-    var accion='';
+  // Disponibles primero, agotadas al final
+  var vlist=(p.variantes||[]).map(function(v,i){return{v:v,i:i}});
+  vlist.sort(function(a,b){return ((a.v.stock===0)?1:0)-((b.v.stock===0)?1:0)});
+  vlist.forEach(function(o){
+    var v=o.v,vi=o.i,accion='',agot=(v.stock===0);
     if((v.precio||0)>0){
-      if(v.stock===0)accion='<span class="vago">Agotado</span>';
+      if(agot)accion='<span class="vago">Agotado</span>';
       else accion='<button class="addv" onclick="addToCart(\''+p.id+'\','+vi+')">+ Agregar</button>';
     }
-    vars+='<div class="vrow" style="gap:8px"><span style="color:var(--tx2);flex:1;min-width:0">'+v.desc+'</span><strong style="color:var(--amber);flex-shrink:0">$'+((v.precio||0).toLocaleString('es-MX'))+'</strong>'+accion+'</div>';
+    vars+='<div class="vrow'+(agot?' out':'')+'" style="gap:8px"><span style="color:var(--tx2);flex:1;min-width:0">'+v.desc+'</span><strong style="color:var(--amber);flex-shrink:0">$'+((v.precio||0).toLocaleString('es-MX'))+'</strong>'+accion+'</div>';
   });
   document.getElementById('pan-vars').innerHTML=vars||'<span style="color:var(--tx3)">Sin variantes registradas</span>';
-  var info=p.descripcion||'';
-  document.getElementById('pan-info').innerHTML=info?info:'<span style="color:var(--tx3)">Sin descripción</span>';
+  var info=(p.descripcion||'').trim();
+  var infoEl=document.getElementById('pan-info');
+  if(info){
+    // Respeta los saltos de línea que escribiste en el admin
+    var esc=info.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    infoEl.innerHTML=esc.replace(/\n/g,'<br>');
+    infoEl.style.display='block';
+  }else{
+    infoEl.innerHTML='<span style="color:var(--tx3)">Sin descripción</span>';
+  }
   document.getElementById('panel').classList.add('open');
   document.body.style.overflow='hidden';
   overlayOpen();
@@ -1038,7 +1135,7 @@ function updateCartBadge(){
   var b=document.getElementById('cart-float');
   if(b){b.style.display=n>0?'flex':'none';document.getElementById('cart-count').textContent=n;}
 }
-window.addToCart=function(prodId,varIdx){
+window.addToCart=function(prodId,varIdx,fromCard){
   var p=(HYGDB.productos||[]).find(function(x){return x.id===prodId});
   if(!p)return;
   var v=(p.variantes||[])[varIdx];
@@ -1049,8 +1146,19 @@ window.addToCart=function(prodId,varIdx){
   else CART.push({key:key,id:prodId,varIdx:varIdx,nombre:p.nombre,desc:v.desc||'',precio:v.precio,cantidad:1,img:(p.imgs||[])[0]||''});
   saveCart();
   ga('agregar_carrito',{producto:p.nombre+(v.desc?' — '+v.desc:'')});
+  if(fromCard){
+    // Desde la cuadrícula: aviso breve y sigues navegando
+    var t=document.getElementById('add-toast');
+    if(t){
+      t.textContent='✓ '+p.nombre+' agregado';
+      t.classList.add('show');
+      clearTimeout(window._addT);
+      window._addT=setTimeout(function(){t.classList.remove('show')},2200);
+    }
+    return;
+  }
   closePanel();
-  openCart();
+  setTimeout(openCart,320);
 };
 window.cartQty=function(key,d){
   var it=CART.find(function(i){return i.key===key});

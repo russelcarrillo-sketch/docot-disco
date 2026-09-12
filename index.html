@@ -108,6 +108,9 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 .fimgs{display:flex;gap:6px;overflow-x:auto;padding:6px 0 4px;scrollbar-width:none;-ms-overflow-style:none}
 .fimgs::-webkit-scrollbar{display:none}
 .fthumb{position:relative;flex-shrink:0;width:68px;height:68px;border-radius:6px;overflow:hidden;border:1px solid var(--bd)}
+.fthumb-lb{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);color:#fff;font-size:8px;font-weight:800;text-align:center;padding:2px 0;letter-spacing:.03em}
+.fthumb-lb.f1{background:rgba(0,201,167,.9);color:#0b1929}
+.fthumb-lb.f2{background:rgba(255,198,109,.9);color:#0b1929}
 .fthumb img{width:100%;height:100%;object-fit:cover;display:block}
 .fthumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.75);border:none;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:11px;padding:0;line-height:1}
 </style>
@@ -262,8 +265,12 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
           <option value="Calentadores">🌡️ Calentadores</option>
           <option value="Filtros">🔄 Filtros</option>
           <option value="Bombas">💨 Bombas</option>
-          <option value="Accesorios">🔧 Accesorios</option>
+          <option value="Tratamiento de agua">💧 Tratamiento de agua</option>
+          <option value="Medios filtrantes">🪸 Medios filtrantes</option>
+          <option value="Limpieza">🧽 Limpieza</option>
+          <option value="Medición">🧪 Medición</option>
           <option value="Sustratos">🪨 Sustratos</option>
+          <option value="Accesorios">🔧 Accesorios</option>
           <option value="Otros">📦 Otros</option>
         </select>
       </div>
@@ -272,7 +279,12 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
         <div class="fld"><label class="lbl">Stock (piezas)</label><input id="hp-stock" type="number" placeholder="Ej: 5"></div>
       </div>
       <div style="font-size:11px;color:var(--tx3);margin:-6px 0 10px">Si el producto tiene varias versiones (tamaños, watts), guárdalo y luego usa "Variantes" para agregar cada una con su precio.</div>
-      <div class="fld"><label class="lbl">Descripción / Características</label><textarea id="hp-desc" rows="4" style="width:100%;resize:vertical;font-family:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--bd2);border-radius:var(--rs);background:var(--sf2);color:var(--tx);outline:none"></textarea></div>
+      <div class="fld"><label class="lbl">Descripción / Características</label><textarea id="hp-desc" rows="4" style="width:100%;resize:vertical;font-family:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--bd2);border-radius:var(--rs);background:var(--sf2);color:var(--tx);outline:none"></textarea>
+        <div style="font-size:11px;color:var(--tx3);margin-top:5px;line-height:1.5">Se muestra justificada. Los saltos de línea que escribas se respetan.</div></div>
+      <div style="background:var(--tbg);border:1px solid var(--tbd);border-radius:var(--rs);padding:9px 11px;font-size:11.5px;color:var(--tx2);line-height:1.6;margin-bottom:12px">
+        📷 <strong style="color:var(--teal)">Las fotos se suben desde el inventario</strong> (botón 📷 Fotos).<br>
+        <span style="color:var(--teal)">1ª foto</span> = la que se ve en el catálogo · <span style="color:var(--amber)">2ª foto</span> = la ficha que se abre al dar clic.
+      </div>
     </div>
     <button class="btn so w" onclick="saveHygProd()">Guardar producto</button>
     <div class="toast" id="toast-hadd">✓ Guardado</div>
@@ -1270,7 +1282,7 @@ function renderHyg(){
   const el=document.getElementById('acc-list');
   const prods=HYGDB.productos||[];
   if(!prods.length){el.innerHTML='<div class="empty"><div style="font-size:36px;opacity:.5;margin-bottom:10px">📦</div><p>Sin productos. Agrega el primero.</p></div>';return;}
-  const icons={'Lámparas':'💡','Calentadores':'🌡️','Filtros':'🔄','Bombas':'💨','Accesorios':'🔧','Sustratos':'🪨'};
+  const icons={'Lámparas':'💡','Calentadores':'🌡️','Filtros':'🔄','Bombas':'💨','Tratamiento de agua':'💧','Medios filtrantes':'🪸','Limpieza':'🧽','Medición':'🧪','Sustratos':'🪨','Accesorios':'🔧','Otros':'📦'};
   const cats=[...new Set(prods.map(p=>p.categoria))];
   el.innerHTML=cats.map(cat=>{
     const items=prods.filter(p=>p.categoria===cat);
@@ -1279,7 +1291,8 @@ function renderHyg(){
       const totalStock=(p.variantes||[]).reduce((s,v)=>s+(v.stock||0),0);
       const prices=(p.variantes||[]).map(v=>v.precio||0).filter(x=>x>0);
       const minPrice=prices.length?Math.min(...prices):0;
-      const thumbs=(p.imgs||[]).length?`<div class="fimgs" style="margin-top:6px">${(p.imgs||[]).map((im,i)=>`<div class="fthumb"><img src="${im}"><button class="fthumb-del" onclick="event.stopPropagation();delHygImg('${p.id}',${i})">×</button></div>`).join('')}</div>`:'';
+      const lbl=i=>i===0?'<span class="fthumb-lb f1">CATÁLOGO</span>':i===1?'<span class="fthumb-lb f2">FICHA</span>':'<span class="fthumb-lb">EXTRA</span>';
+      const thumbs=(p.imgs||[]).length?`<div class="fimgs" style="margin-top:6px">${(p.imgs||[]).map((im,i)=>`<div class="fthumb"><img src="${im}">${lbl(i)}<button class="fthumb-del" onclick="event.stopPropagation();delHygImg('${p.id}',${i})">×</button></div>`).join('')}</div>`:'';
       return `<div class="acc-card">
         ${(p.imgs||[]).length?`<img class="acc-img" src="${p.imgs[0]}" alt="${p.nombre}">`:''}
         <div class="acc-body">
@@ -1291,7 +1304,7 @@ function renderHyg(){
             <span style="font-size:13px;font-weight:600;color:${totalStock>0?'var(--green)':'var(--tx3)'}">${totalStock>0?totalStock+' en stock':'Sin stock'}</span>
           </div>
           <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">
-            <button class="btn df" style="flex:1;font-size:11px;padding:5px 6px;min-height:32px" onclick="trigHygImg('${p.id}')">📷 Foto${(p.imgs||[]).length?' ('+(p.imgs||[]).length+')':''}</button>
+            <button class="btn df" style="flex:1;font-size:11px;padding:5px 6px;min-height:32px" onclick="trigHygImg('${p.id}')">📷 Fotos${(p.imgs||[]).length?' ('+(p.imgs||[]).length+')':''}</button>
             <button class="btn pr" style="flex:1;font-size:11px;padding:5px 6px;min-height:32px" onclick="openHygVars('${p.id}')">📦 Variantes</button>
             <button class="btn pr" style="flex:1;font-size:11px;padding:5px 6px;min-height:32px" onclick="openHygEdit('${p.id}')">✏️ Editar</button>
             <button class="btn da" style="font-size:11px;padding:5px 8px;min-height:32px" onclick="delHygProd('${p.id}')">🗑</button>
