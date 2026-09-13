@@ -107,8 +107,16 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 .fcard-btns .btn{flex:1;font-size:12px;padding:7px 10px;min-height:36px}
 .fimgs{display:flex;gap:6px;overflow-x:auto;padding:6px 0 4px;scrollbar-width:none;-ms-overflow-style:none}
 .fimgs::-webkit-scrollbar{display:none}
-.fthumb{position:relative;flex-shrink:0;width:68px;height:68px;border-radius:6px;overflow:hidden;border:1px solid var(--bd)}
-.fthumb-lb{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);color:#fff;font-size:8px;font-weight:800;text-align:center;padding:2px 0;letter-spacing:.03em}
+.fthumb{position:relative;flex-shrink:0;width:76px;border-radius:6px;overflow:hidden;border:1px solid var(--bd);background:var(--sf2);touch-action:pan-y;cursor:grab;-webkit-user-select:none;user-select:none}
+.fthumb.dragging{cursor:grabbing;opacity:.92;z-index:30;box-shadow:0 10px 26px rgba(0,0,0,.55);border-color:var(--teal)}
+.fthumb.drop{outline:2px dashed var(--teal);outline-offset:-2px}
+.fthumb.drop img{opacity:.5}
+.fthumb img{width:76px;height:68px;object-fit:cover;display:block}
+.fthumb-lb{position:absolute;top:50px;left:0;right:0;background:rgba(0,0,0,.75);color:#fff;font-size:8px;font-weight:800;text-align:center;padding:2px 0;letter-spacing:.03em}
+.fthumb-bar{display:flex;align-items:center;justify-content:space-between;background:var(--sf2);border-top:1px solid var(--bd)}
+.fthumb-mv{flex:1;border:none;background:none;color:var(--teal);font-size:14px;line-height:1;cursor:pointer;padding:5px 0;font-family:inherit}
+.fthumb-mv:disabled{color:var(--tx3);opacity:.3;cursor:default}
+.fthumb-mv:active:not(:disabled){background:rgba(0,201,167,.18)}
 .fthumb-lb.f1{background:rgba(0,201,167,.9);color:#0b1929}
 .fthumb-lb.f2{background:rgba(255,198,109,.9);color:#0b1929}
 .fthumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1052,7 +1060,7 @@ function renderInv(){
             <div style="font-size:10px;color:var(--tx3);text-transform:uppercase">disp.</div>
           </div>
         </div>
-        ${imgs.length?`<div class="fimgs">${imgs.map((im,i)=>`<div class="fthumb"><img src="${im}"><button class="fthumb-del" onclick="event.stopPropagation();delImg('${cat.id}',${i})">×</button></div>`).join('')}</div>`:''}
+        ${imgs.length?`<div class="fimgs">${imgs.map((im,i)=>`<div class="fthumb" data-kind="fish" data-owner="${cat.id}" data-idx="${i}"><img src="${im}" draggable="false">${i===0?'<span class="fthumb-lb f1">PRINCIPAL</span>':''}<button class="fthumb-del" onclick="event.stopPropagation();delImg('${cat.id}',${i})">×</button><div class="fthumb-bar"><button class="fthumb-mv" onclick="event.stopPropagation();moveImg('${cat.id}',${i},-1)" ${i===0?'disabled':''}>◀</button><button class="fthumb-mv" onclick="event.stopPropagation();moveImg('${cat.id}',${i},1)" ${i===imgs.length-1?'disabled':''}>▶</button></div></div>`).join('')}</div>`:''}
         <div class="fcard-btns">
           <button class="btn df" onclick="trigImg('${cat.id}')">📷 Foto${imgs.length>0?` (${imgs.length})`:''}</button>
           <button class="btn pr" onclick="openEdit('${cat.id}')">✏️ Editar</button>
@@ -1292,7 +1300,8 @@ function renderHyg(){
       const prices=(p.variantes||[]).map(v=>v.precio||0).filter(x=>x>0);
       const minPrice=prices.length?Math.min(...prices):0;
       const lbl=i=>i===0?'<span class="fthumb-lb f1">CATÁLOGO</span>':i===1?'<span class="fthumb-lb f2">FICHA</span>':'<span class="fthumb-lb">EXTRA</span>';
-      const thumbs=(p.imgs||[]).length?`<div class="fimgs" style="margin-top:6px">${(p.imgs||[]).map((im,i)=>`<div class="fthumb"><img src="${im}">${lbl(i)}<button class="fthumb-del" onclick="event.stopPropagation();delHygImg('${p.id}',${i})">×</button></div>`).join('')}</div>`:'';
+      const nImg=(p.imgs||[]).length;
+      const thumbs=nImg?`<div class="fimgs" style="margin-top:6px">${(p.imgs||[]).map((im,i)=>`<div class="fthumb" data-kind="hyg" data-owner="${p.id}" data-idx="${i}"><img src="${im}" draggable="false">${lbl(i)}<button class="fthumb-del" onclick="event.stopPropagation();delHygImg('${p.id}',${i})">×</button><div class="fthumb-bar"><button class="fthumb-mv" onclick="event.stopPropagation();moveHygImg('${p.id}',${i},-1)" ${i===0?'disabled':''} title="Mover antes">◀</button><button class="fthumb-mv" onclick="event.stopPropagation();moveHygImg('${p.id}',${i},1)" ${i===nImg-1?'disabled':''} title="Mover después">▶</button></div></div>`).join('')}</div>`:'';
       return `<div class="acc-card">
         ${(p.imgs||[]).length?`<img class="acc-img" src="${p.imgs[0]}" alt="${p.nombre}">`:''}
         <div class="acc-body">
@@ -1427,6 +1436,68 @@ window.delHygImg=function(prodId,idx){
   const p=(HYGDB.productos||[]).find(x=>x.id===prodId);if(!p)return;
   (p.imgs=p.imgs||[]).splice(idx,1);saveHyg();renderHyg();
 };
+// ── REORDENAR FOTOS: 1ª = catálogo · 2ª = ficha ──
+function imgsDe(kind,owner){
+  if(kind==='hyg'){
+    const p=(HYGDB.productos||[]).find(x=>x.id===owner);
+    return p?(p.imgs=p.imgs||[]):null;
+  }
+  return Array.isArray(IMGS[owner])?IMGS[owner]:null;
+}
+function guardarOrden(kind){
+  if(kind==='hyg'){saveHyg();renderHyg();}
+  else{saveImgs();renderInv();}
+}
+function reordenar(kind,owner,from,to){
+  const arr=imgsDe(kind,owner);
+  if(!arr||from===to||from<0||to<0||from>=arr.length||to>=arr.length)return;
+  const m=arr.splice(from,1)[0];
+  arr.splice(to,0,m);
+  guardarOrden(kind);
+}
+window.moveHygImg=function(prodId,idx,dir){reordenar('hyg',prodId,idx,idx+dir)};
+window.moveImg=function(catId,idx,dir){reordenar('fish',catId,idx,idx+dir)};
+
+// Arrastrar con dedo o mouse
+let drag=null;
+document.addEventListener('pointerdown',function(e){
+  const th=e.target.closest&&e.target.closest('.fthumb');
+  if(!th||!th.dataset.kind)return;
+  if(e.target.closest('.fthumb-del')||e.target.closest('.fthumb-mv'))return;
+  drag={th,strip:th.parentElement,kind:th.dataset.kind,owner:th.dataset.owner,
+        from:parseInt(th.dataset.idx,10),to:null,x0:e.clientX,y0:e.clientY,moved:false};
+  try{th.setPointerCapture(e.pointerId)}catch(err){}
+});
+document.addEventListener('pointermove',function(e){
+  if(!drag)return;
+  const dx=e.clientX-drag.x0, dy=e.clientY-drag.y0;
+  if(!drag.moved){
+    if(Math.abs(dx)<7&&Math.abs(dy)<7)return;
+    drag.moved=true;
+    drag.th.classList.add('dragging');
+  }
+  e.preventDefault();
+  drag.th.style.transform='translate('+dx+'px,'+dy+'px)';
+  drag.th.style.pointerEvents='none';
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  drag.th.style.pointerEvents='';
+  const over=el&&el.closest?el.closest('.fthumb'):null;
+  drag.strip.querySelectorAll('.fthumb').forEach(t=>t.classList.remove('drop'));
+  if(over&&over!==drag.th&&over.parentElement===drag.strip){
+    over.classList.add('drop');
+    drag.to=parseInt(over.dataset.idx,10);
+  }else drag.to=null;
+},{passive:false});
+function finDrag(){
+  if(!drag)return;
+  const d=drag;drag=null;
+  d.th.style.transform='';
+  d.th.classList.remove('dragging');
+  d.strip.querySelectorAll('.fthumb').forEach(t=>t.classList.remove('drop'));
+  if(d.moved&&d.to!==null&&d.to!==d.from)reordenar(d.kind,d.owner,d.from,d.to);
+}
+document.addEventListener('pointerup',finDrag);
+document.addEventListener('pointercancel',finDrag);
 window.handleHygImg=async function(ev){
   const files=Array.from(ev.target.files);if(!files.length||!imgHygId)return;
   const p=(HYGDB.productos||[]).find(x=>x.id===imgHygId);if(!p)return;
