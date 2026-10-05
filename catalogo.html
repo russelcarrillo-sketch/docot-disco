@@ -226,6 +226,19 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:-appl
 .mp-btn:hover{background:#008fd0}
 .mp-btn:disabled{opacity:.5;cursor:not-allowed}
 .envio-hint{background:rgba(0,212,180,.08);border:1px solid rgba(0,212,180,.25);border-radius:8px;padding:8px 12px;font-size:12.5px;color:var(--teal);font-weight:600;text-align:center;margin:8px 0}
+/* Selector de tipo de envío */
+.envopt{display:flex;align-items:center;gap:11px;background:var(--sf);border:1.5px solid var(--bd);border-radius:11px;padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,background .15s}
+.envopt:hover{border-color:rgba(0,212,180,.45)}
+.envopt.on{border-color:var(--teal);background:rgba(0,212,180,.07)}
+.envopt-r{width:19px;height:19px;border-radius:50%;border:2px solid var(--bd2,#2a5070);flex-shrink:0;position:relative;transition:border-color .15s}
+.envopt.on .envopt-r{border-color:var(--teal)}
+.envopt.on .envopt-r::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--teal)}
+.envopt-ic{font-size:21px;flex-shrink:0}
+.envopt-t{flex:1;min-width:0}
+.envopt-t b{display:block;font-size:13.5px;font-weight:700;color:var(--tx)}
+.envopt-t span{display:block;font-size:11.5px;color:var(--tx3);margin-top:1px}
+.envopt-p{font-size:14px;font-weight:800;color:var(--teal);flex-shrink:0;font-family:'Sora',-apple-system,sans-serif}
+.envopt-p.free{color:var(--green)}
 .pago-banner{position:fixed;top:0;left:0;right:0;z-index:9997;padding:14px 44px 14px 16px;text-align:center;font-size:14px;font-weight:600}
 .pago-banner button{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:inherit;font-size:20px;cursor:pointer}
 /* Mini-aviso deslizante */
@@ -492,6 +505,8 @@ html{scroll-behavior:smooth}
     <div id="cart-items"></div>
     <div id="cart-resumen" style="display:none">
       <div id="cart-envio-hint"></div>
+      <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">🚚 Elige tu envío</div>
+      <div id="cart-envopts"></div>
       <div style="background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:.8rem 1rem;margin:10px 0">
         <div class="crow"><span style="color:var(--tx2)">Subtotal</span><strong id="cart-sub">$0</strong></div>
         <div class="crow"><span style="color:var(--tx2)">Envío</span><strong id="cart-env">$0</strong></div>
@@ -1126,6 +1141,8 @@ function loadAll(){
 // ── CARRITO DE COMPRAS ──
 var CART=[];
 try{CART=JSON.parse(localStorage.getItem('dd-cart')||'[]')}catch(e){CART=[]}
+var cartEnvio='terrestre';
+try{cartEnvio=localStorage.getItem('dd-envio')||'terrestre'}catch(e){}
 function saveCart(){
   try{localStorage.setItem('dd-cart',JSON.stringify(CART))}catch(e){}
   updateCartBadge();
@@ -1168,13 +1185,27 @@ window.cartQty=function(key,d){
   else if(it.cantidad>20)it.cantidad=20;
   saveCart();renderCart();
 };
-function envioCalc(sub){
-  var costo=Number(HYGDB.envioCosto)||0;
+// Opciones de envío: terrestre (puede ser gratis) y aéreo
+function envioOpciones(sub){
   var gratis=Number(HYGDB.envioGratisDesde)||0;
-  if(gratis>0&&sub>=gratis)return{costo:0,hint:'🎉 ¡Tu pedido tiene envío GRATIS!'};
+  var aplicaGratis=gratis>0&&sub>=gratis;
+  var ct=Number(HYGDB.envioCosto)||0;
+  var ca=Number(HYGDB.envioAereo)||0;
+  var dt=(HYGDB.envioDiasT||'4 a 7').trim();
+  var da=(HYGDB.envioDiasA||'2 a 3').trim();
+  var ops=[{id:'terrestre',ic:'🚚',nom:'Envío terrestre',dias:dt+' días hábiles',costo:aplicaGratis?0:ct,gratis:aplicaGratis}];
+  if(ca>0)ops.push({id:'aereo',ic:'✈️',nom:'Envío aéreo',dias:da+' días hábiles',costo:ca,gratis:false});
+  return ops;
+}
+function envioCalc(sub){
+  var ops=envioOpciones(sub);
+  var sel=ops.filter(function(o){return o.id===cartEnvio})[0]||ops[0];
+  cartEnvio=sel.id;
+  var gratis=Number(HYGDB.envioGratisDesde)||0;
   var hint='';
-  if(gratis>0&&sub>0)hint='🚚 Agrega '+fmt(gratis-sub)+' más y tu envío es GRATIS';
-  return{costo:costo,hint:hint};
+  if(gratis>0&&sub>=gratis)hint='🎉 ¡Tu pedido tiene envío terrestre GRATIS!';
+  else if(gratis>0&&sub>0)hint='🚚 Agrega '+fmt(gratis-sub)+' más y tu envío terrestre es GRATIS';
+  return{costo:sel.costo,hint:hint,ops:ops,sel:sel};
 }
 function renderCart(){
   var el=document.getElementById('cart-items');
@@ -1198,11 +1229,23 @@ function renderCart(){
   res.style.display='block';
   var sub=CART.reduce(function(s,i){return s+i.precio*i.cantidad},0);
   var env=envioCalc(sub);
+  // Opciones de envío
+  var oe=document.getElementById('cart-envopts');
+  if(oe){
+    oe.innerHTML=env.ops.map(function(o){
+      var precio=o.costo>0?fmt(o.costo):'GRATIS';
+      return '<div class="envopt'+(o.id===cartEnvio?' on':'')+'" onclick="setEnvio(\''+o.id+'\')">'+
+        '<div class="envopt-r"></div><div class="envopt-ic">'+o.ic+'</div>'+
+        '<div class="envopt-t"><b>'+o.nom+'</b><span>Llega en '+o.dias+'</span></div>'+
+        '<div class="envopt-p'+(o.costo===0?' free':'')+'">'+precio+'</div></div>';
+    }).join('');
+  }
   document.getElementById('cart-sub').textContent=fmt(sub);
   document.getElementById('cart-env').textContent=env.costo>0?fmt(env.costo):'GRATIS';
   document.getElementById('cart-total').textContent=fmt(sub+env.costo);
   document.getElementById('cart-envio-hint').innerHTML=env.hint?'<div class="envio-hint">'+env.hint+'</div>':'';
 }
+window.setEnvio=function(t){cartEnvio=t;try{localStorage.setItem('dd-envio',t)}catch(e){}renderCart();};
 window.openCart=function(){
   renderCart();
   document.getElementById('cart-panel').classList.add('open');
@@ -1236,7 +1279,7 @@ window.doCheckout=async function(){
     var r=await fetch('/api/checkout',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({items:CART.map(function(i){return{id:i.id,varIdx:i.varIdx,cantidad:i.cantidad}}),envio:f})
+      body:JSON.stringify({items:CART.map(function(i){return{id:i.id,varIdx:i.varIdx,cantidad:i.cantidad}}),envio:f,envioTipo:cartEnvio})
     });
     var d=await r.json();
     if(d.url){
