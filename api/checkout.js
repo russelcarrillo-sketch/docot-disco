@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     return;
   }
   try {
-    const { items, envio } = req.body || {};
+    const { items, envio, envioTipo } = req.body || {};
     if (!Array.isArray(items) || !items.length) {
       res.status(400).json({ error: 'El carrito está vacío' });
       return;
@@ -79,11 +79,19 @@ export default async function handler(req, res) {
       detalle.push({ nombre: titulo, cantidad: qty, precio: Number(v.precio) });
     }
 
-    const envioCosto = Number(hyg.envioCosto) || 0;
+    // Envío: terrestre (puede ser gratis) o aéreo. El costo se calcula aquí, no se confía en el cliente.
     const envioGratisDesde = Number(hyg.envioGratisDesde) || 0;
-    const costoEnvio = envioGratisDesde > 0 && subtotal >= envioGratisDesde ? 0 : envioCosto;
+    const aplicaGratis = envioGratisDesde > 0 && subtotal >= envioGratisDesde;
+    const costoAereo = Number(hyg.envioAereo) || 0;
+    const tipo = envioTipo === 'aereo' && costoAereo > 0 ? 'aereo' : 'terrestre';
+    const diasT = String(hyg.envioDiasT || '4 a 7').trim();
+    const diasA = String(hyg.envioDiasA || '2 a 3').trim();
+    const costoEnvio =
+      tipo === 'aereo' ? costoAereo : aplicaGratis ? 0 : Number(hyg.envioCosto) || 0;
+    const envioNombre =
+      tipo === 'aereo' ? `Envío aéreo (${diasA} días hábiles)` : `Envío terrestre (${diasT} días hábiles)`;
     if (costoEnvio > 0) {
-      mpItems.push({ title: 'Envío', quantity: 1, unit_price: costoEnvio, currency_id: 'MXN' });
+      mpItems.push({ title: envioNombre, quantity: 1, unit_price: costoEnvio, currency_id: 'MXN' });
     }
     const total = subtotal + costoEnvio;
 
@@ -104,6 +112,8 @@ export default async function handler(req, res) {
       items: fsv(JSON.stringify(detalle)),
       subtotal: fsv(subtotal),
       envio: fsv(costoEnvio),
+      envioTipo: fsv(tipo),
+      envioNombre: fsv(envioNombre),
       total: fsv(total),
     };
     await fetch(`${FS_BASE}/pedidos?documentId=${orderId}&key=${API_KEY}`, {
