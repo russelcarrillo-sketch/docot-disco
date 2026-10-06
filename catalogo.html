@@ -7,6 +7,18 @@
 <!-- Google Analytics 4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-8730W0QVR9"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-8730W0QVR9');</script>
+<!-- Meta Pixel -->
+<script>
+try{
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','4380782328806139');fbq('track','PageView');
+}catch(e){}
+</script>
+<noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=4380782328806139&ev=PageView&noscript=1"></noscript>
 <meta name="description" content="Peces disco de importación de la más alta calidad y accesorios Hygger. Catálogo en vivo con disponibilidad real.">
 <meta name="theme-color" content="#040e1a">
 <meta property="og:type" content="website">
@@ -476,7 +488,9 @@ html{scroll-behavior:smooth}
       <p>Catálogo actualizado en tiempo real con disponibilidad y precios al momento.</p>
     </div>
   </div>
-  <div class="fbase">© Doctor Disco — Premium Care · Distribuidor Oficial Hygger</div>
+  <div class="fbase">© Doctor Disco — Premium Care · Distribuidor Oficial Hygger<br>
+    <a href="privacidad.html" style="color:var(--tx2);text-decoration:none;border-bottom:1px solid var(--bd)">Aviso de Privacidad</a>
+  </div>
 </div>
 <div id="add-toast">✓ Agregado al carrito</div>
 <button class="cart-float" id="cart-float" onclick="openCart()">🛒 Carrito<span class="cart-count" id="cart-count">0</span></button>
@@ -578,7 +592,13 @@ var GRUPO_WA = "https://chat.whatsapp.com/KpDMURw33bi0ee7frVhHEy?mode=gi_t";
 var GRUPO_URL = GRUPO_WA.indexOf('chat.whatsapp.com')>=0 ? GRUPO_WA
   : 'https://wa.me/523310934314?text='+encodeURIComponent('Hola Doctor Disco! Quiero unirme al grupo de la comunidad 🐠');
 function ga(name,params){try{if(window.gtag)window.gtag('event',name,params||{});}catch(e){}}
-function trackJoin(name){try{if(window.va)window.va('event',{name:name});}catch(e){}ga('unirse_grupo',{origen:name});}
+// Meta Pixel — nunca rompe la página si no cargó
+function fb(name,params,opts){try{if(window.fbq)window.fbq('track',name,params||{},opts||undefined);}catch(e){}}
+function trackJoin(name){
+  try{if(window.va)window.va('event',{name:name});}catch(e){}
+  ga('unirse_grupo',{origen:name});
+  fb('Lead',{content_name:'Comunidad Dr. Disco',origen:name});
+}
 // Rastreo de clics a WhatsApp (Me interesa, flotante, panel)
 document.addEventListener('click',function(e){
   var a=e.target.closest('a[href*="wa.me"],a[href*="api.whatsapp.com"]');
@@ -593,6 +613,7 @@ document.addEventListener('click',function(e){
   var card=a.closest('.fc');
   if(card){var fn=card.querySelector('.fname');if(fn)nombre=fn.textContent;}
   ga('click_whatsapp',{origen:origen,producto:nombre});
+  fb('Contact',{content_name:nombre||origen,origen:origen});
 },true);
 var JOIN_SRC={'comm-btn':'unirse-banner','ts-link':'unirse-topstrip','hcomm-link':'unirse-hero','ct-btn':'unirse-aviso'};
 Object.keys(JOIN_SRC).forEach(function(id){
@@ -643,7 +664,9 @@ function switchTab(t){
   setNav(t==='p'?'nav-c':t==='a'?'nav-a':'nav-b');
   if(t==='a')renderAcc();
   if(t==='b')renderBlog();
+  var secNom=t==='p'?'Peces disco':t==='a'?'Accesorios Hygger':'Blog';
   ga('ver_seccion',{seccion:t==='p'?'peces':t==='a'?'accesorios':'blog'});
+  fb('ViewContent',{content_name:secNom,content_type:'product_group',currency:'MXN'});
 }
 
 // Animación de entrada al hacer scroll
@@ -950,6 +973,10 @@ function openPanel(id){
   }else{
     infoEl.innerHTML='<span style="color:var(--tx3)">Sin descripción</span>';
   }
+  var pPrecios=(p.variantes||[]).map(function(v){return v.precio||0}).filter(function(x){return x>0});
+  var pMin=pPrecios.length?Math.min.apply(null,pPrecios):0;
+  ga('ver_producto',{producto:p.nombre,value:pMin});
+  fb('ViewContent',{content_name:p.nombre,content_ids:[p.id],content_type:'product',value:pMin,currency:'MXN'});
   document.getElementById('panel').classList.add('open');
   document.body.style.overflow='hidden';
   overlayOpen();
@@ -1162,7 +1189,9 @@ window.addToCart=function(prodId,varIdx,fromCard){
   if(ex)ex.cantidad=Math.min(20,ex.cantidad+1);
   else CART.push({key:key,id:prodId,varIdx:varIdx,nombre:p.nombre,desc:v.desc||'',precio:v.precio,cantidad:1,img:(p.imgs||[])[0]||''});
   saveCart();
-  ga('agregar_carrito',{producto:p.nombre+(v.desc?' — '+v.desc:'')});
+  var nomCompleto=p.nombre+(v.desc?' — '+v.desc:'');
+  ga('agregar_carrito',{producto:nomCompleto,value:v.precio});
+  fb('AddToCart',{content_name:nomCompleto,content_ids:[p.id],content_type:'product',value:v.precio,currency:'MXN'});
   if(fromCard){
     // Desde la cuadrícula: aviso breve y sigues navegando
     var t=document.getElementById('add-toast');
@@ -1283,7 +1312,11 @@ window.doCheckout=async function(){
     });
     var d=await r.json();
     if(d.url){
-      ga('iniciar_pago',{total:d.total||0});
+      var tot=Number(d.total)||0;
+      ga('iniciar_pago',{total:tot});
+      fb('InitiateCheckout',{value:tot,currency:'MXN',num_items:CART.reduce(function(s,i){return s+i.cantidad},0)});
+      // Guardamos el total para poder reportar la compra al regresar de Mercado Pago
+      try{localStorage.setItem('dd-pend',JSON.stringify({pedido:d.pedido,total:tot}))}catch(e){}
       location.href=d.url;
       return;
     }
@@ -1308,6 +1341,25 @@ updateCartBadge();
   }[pago];
   if(!cfg)return;
   if(pago==='exito'||pago==='pendiente'){CART=[];saveCart();}
+  // Compra confirmada → Purchase (solo con éxito y una sola vez por pedido)
+  if(pago==='exito'){
+    var ped=new URLSearchParams(location.search).get('pedido')||'';
+    var contados=[];
+    try{contados=JSON.parse(localStorage.getItem('dd-purch')||'[]')}catch(e){}
+    if(ped&&contados.indexOf(ped)<0){
+      var pend={};
+      try{pend=JSON.parse(localStorage.getItem('dd-pend')||'{}')}catch(e){}
+      var val=(pend&&pend.pedido===ped)?(Number(pend.total)||0):0;
+      fb('Purchase',{value:val,currency:'MXN'},{eventID:ped});
+      ga('purchase',{transaction_id:ped,value:val,currency:'MXN'});
+      try{
+        contados.push(ped);
+        if(contados.length>50)contados=contados.slice(-50);
+        localStorage.setItem('dd-purch',JSON.stringify(contados));
+      }catch(e){}
+    }
+    try{localStorage.removeItem('dd-pend')}catch(e){}
+  }
   var b=document.createElement('div');
   b.className='pago-banner';
   b.style.background=cfg.bg;
