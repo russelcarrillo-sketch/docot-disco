@@ -587,10 +587,20 @@ html{scroll-behavior:smooth}
 
 <script>
 var LI = "https://firebasestorage.googleapis.com/v0/b/peces-disco.firebasestorage.app/o/Captura_de_pantalla_2026-05-25_a_la_s__9.32.30_p.m.-removebg-preview.png?alt=media&token=86c4b4e4-827d-43fd-9b70-70ad3d964b3e";
-// ⬇️ PEGA AQUÍ EL LINK DE INVITACIÓN DE TU GRUPO DE WHATSAPP (WhatsApp > Grupo > Invitar mediante enlace)
+// El link del grupo se configura desde el admin (Accesorios → Configuración).
+// Este valor solo se usa como respaldo si aún no lo has guardado ahí.
 var GRUPO_WA = "https://chat.whatsapp.com/KpDMURw33bi0ee7frVhHEy?mode=gi_t";
-var GRUPO_URL = GRUPO_WA.indexOf('chat.whatsapp.com')>=0 ? GRUPO_WA
-  : 'https://wa.me/523310934314?text='+encodeURIComponent('Hola Doctor Disco! Quiero unirme al grupo de la comunidad 🐠');
+var GRUPO_URL = GRUPO_WA;
+function aplicarGrupoURL(){
+  var link=(typeof HYGDB!=='undefined'&&HYGDB.grupoWA)?String(HYGDB.grupoWA).trim():'';
+  if(!link)link=GRUPO_WA;
+  GRUPO_URL = link.indexOf('chat.whatsapp.com')>=0 ? link
+    : 'https://wa.me/'+((typeof HYGDB!=='undefined'&&HYGDB.whatsapp)||'523310934314')+'?text='+encodeURIComponent('Hola Doctor Disco! Quiero unirme al grupo de la comunidad 🐠');
+  ['comm-btn','ts-link','hcomm-link','ct-btn'].forEach(function(id){
+    var e=document.getElementById(id);
+    if(e)e.href=GRUPO_URL;
+  });
+}
 function ga(name,params){try{if(window.gtag)window.gtag('event',name,params||{});}catch(e){}}
 // Meta Pixel — nunca rompe la página si no cargó
 function fb(name,params,opts){try{if(window.fbq)window.fbq('track',name,params||{},opts||undefined);}catch(e){}}
@@ -618,8 +628,9 @@ document.addEventListener('click',function(e){
 var JOIN_SRC={'comm-btn':'unirse-banner','ts-link':'unirse-topstrip','hcomm-link':'unirse-hero','ct-btn':'unirse-aviso'};
 Object.keys(JOIN_SRC).forEach(function(id){
   var e=document.getElementById(id);
-  if(e){e.href=GRUPO_URL;e.addEventListener('click',function(){trackJoin(JOIN_SRC[id]);});}
+  if(e)e.addEventListener('click',function(){trackJoin(JOIN_SRC[id]);});
 });
+aplicarGrupoURL();
 window.openGrupo=function(){trackJoin('unirse-tarjeta');window.open(GRUPO_URL,'_blank');};
 // Tarjeta de comunidad dentro de la cuadrícula de peces
 var COMM_CARD='<div class="fc rv ccard" onclick="openGrupo()"><div class="ccard-ic"><img src="'+LI+'" alt="Dr. Disco"></div><div class="ccard-t">Únete a la <span>Comunidad Dr. Disco</span></div><div class="ccard-s">Entérate primero de cada importación, tips de cuidado y promos exclusivas</div><div class="ccard-b">💬 Unirme gratis</div></div>';
@@ -1128,6 +1139,7 @@ function loadAll(){
         var h3=JSON.stringify(hyg);
         if(h3!==hHyg){
           hHyg=h3;HYGDB=hyg;
+          aplicarGrupoURL();
           if(HYGDB.whatsapp){
             var wf=document.getElementById('wa-float');
             if(wf)wf.href='https://wa.me/'+HYGDB.whatsapp+'?text='+encodeURIComponent('Hola Doctor Disco! Me gustaría más información.');

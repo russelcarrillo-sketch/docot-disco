@@ -341,6 +341,9 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
   <div class="p">
     <div class="card">
       <div class="fld"><label class="lbl">Número de WhatsApp (con código de país, sin +)</label><input id="hcfg-wa" placeholder="Ej: 523310934314" type="tel"></div>
+      <div class="fld"><label class="lbl">🐠 Link del grupo de WhatsApp (Comunidad Dr. Disco)</label><input id="hcfg-grupo" placeholder="https://chat.whatsapp.com/..." type="url">
+        <div style="font-size:11px;color:var(--tx3);margin-top:5px;line-height:1.5">En WhatsApp: abre el grupo → toca el nombre → "Invitar mediante enlace" → Copiar. Si lo dejas vacío, los botones abren un chat directo contigo.</div>
+      </div>
     </div>
     <div class="card">
       <div class="sec" style="margin-bottom:10px">🚚 Envíos de la tienda en línea</div>
@@ -1445,6 +1448,7 @@ window.delHygVar=async function(vid){
 
 window.openHygConfig=function(){
   document.getElementById('hcfg-wa').value=HYGDB.whatsapp||'';
+  document.getElementById('hcfg-grupo').value=HYGDB.grupoWA||'';
   document.getElementById('hcfg-envio').value=HYGDB.envioCosto||'';
   document.getElementById('hcfg-aereo').value=HYGDB.envioAereo||'';
   document.getElementById('hcfg-dias-t').value=HYGDB.envioDiasT||'';
@@ -1454,6 +1458,7 @@ window.openHygConfig=function(){
 };
 window.saveHygConfig=async function(){
   HYGDB.whatsapp=document.getElementById('hcfg-wa').value.trim();
+  HYGDB.grupoWA=document.getElementById('hcfg-grupo').value.trim();
   HYGDB.envioCosto=parseFloat(document.getElementById('hcfg-envio').value)||0;
   HYGDB.envioAereo=parseFloat(document.getElementById('hcfg-aereo').value)||0;
   HYGDB.envioDiasT=document.getElementById('hcfg-dias-t').value.trim();
