@@ -240,6 +240,17 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 <div class="page" id="pg-pedidos">
   <div class="ph"><button class="back" onclick="go('pg-dash')">←</button><div style="flex:1"><h1>Pedidos en línea</h1><small>Tienda Hygger</small></div><button class="btn df" style="min-height:36px;padding:7px 12px;font-size:12px;flex-shrink:0" onclick="renderPedidos()">🔄</button></div>
   <div class="p" id="ped-list"></div>
+  <div class="p">
+    <div class="div"></div>
+    <div class="sec">🎟️ Liberar código de descuento</div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--tx3);line-height:1.6;margin-bottom:12px">Si alguien usó un código pero no completó el pago, aquí puedes devolvérselo para que lo vuelva a usar.</div>
+      <div class="fld"><label class="lbl">Código</label><input id="lib-cod" placeholder="BIENVENIDO10" style="text-transform:uppercase"></div>
+      <div class="fld"><label class="lbl">Correo del cliente</label><input id="lib-mail" type="email" placeholder="cliente@correo.com"></div>
+      <button class="btn pr w" style="margin-bottom:0" onclick="liberarCupon()">Liberar código</button>
+      <div id="lib-msg" style="display:none;font-size:13px;text-align:center;margin-top:10px"></div>
+    </div>
+  </div>
 </div>
 
 <!-- INVENTARIO -->
@@ -1889,6 +1900,39 @@ window.updPedido=async function(id,st){
   try{await updateDoc(doc(db,'pedidos',id),{status:st});}
   catch(e){alert('No se pudo actualizar: '+e.message);renderPedidos();}
 };
+// Libera un código para que un cliente lo pueda volver a usar.
+// El mismo cálculo que hace el servidor: nunca se guarda el correo, solo su huella.
+async function cuponHashWeb(codigo,correo){
+  const txt=String(codigo).trim().toUpperCase()+'|'+String(correo).trim().toLowerCase();
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,40);
+}
+window.liberarCupon=async function(){
+  const cod=document.getElementById('lib-cod').value.trim().toUpperCase();
+  const mail=document.getElementById('lib-mail').value.trim().toLowerCase();
+  const m=document.getElementById('lib-msg');
+  m.style.display='block';
+  if(!cod||!mail){m.style.color='var(--red)';m.textContent='Escribe el código y el correo';return;}
+  m.style.color='var(--tx3)';m.textContent='Liberando...';
+  try{
+    const h=await cuponHashWeb(cod,mail);
+    const ref=doc(db,'cupones_usados',h);
+    const snap=await getDoc(ref);
+    if(!snap.exists()){
+      m.style.color='var(--amber)';
+      m.textContent='Ese correo no ha usado el código '+cod+' (o ya estaba libre)';
+      return;
+    }
+    await deleteDoc(ref);
+    m.style.color='var(--green)';
+    m.textContent='✓ Listo. '+mail+' ya puede volver a usar '+cod;
+    document.getElementById('lib-mail').value='';
+  }catch(e){
+    m.style.color='var(--red)';
+    m.textContent='Error: '+e.message;
+  }
+};
+
 window.delPedido=async function(id){
   if(!confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.'))return;
   try{await deleteDoc(doc(db,'pedidos',id));renderPedidos();}

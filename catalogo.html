@@ -545,7 +545,7 @@ html{scroll-behavior:smooth}
       <input class="cinp" id="co-nombre" placeholder="Nombre completo *">
       <div class="cart-g2">
         <input class="cinp" id="co-tel" type="tel" placeholder="WhatsApp / Teléfono *">
-        <input class="cinp" id="co-correo" type="email" placeholder="Correo (opcional)">
+        <input class="cinp" id="co-correo" type="email" placeholder="Correo electrónico *" autocomplete="email">
       </div>
       <input class="cinp" id="co-dir" placeholder="Calle y número *">
       <div class="cart-g2">
@@ -1382,8 +1382,13 @@ window.doCheckout=async function(){
     estado:document.getElementById('co-estado').value.trim(),
     referencias:document.getElementById('co-ref').value.trim()
   };
-  if(!f.nombre||!f.telefono||!f.direccion||!f.colonia||!f.cp||!f.ciudad||!f.estado){
+  if(!f.nombre||!f.telefono||!f.correo||!f.direccion||!f.colonia||!f.cp||!f.ciudad||!f.estado){
     err.textContent='Completa todos los campos marcados con *';
+    err.style.display='block';
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.correo)){
+    err.textContent='Revisa tu correo electrónico, parece incompleto';
     err.style.display='block';
     return;
   }
