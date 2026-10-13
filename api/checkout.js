@@ -2,7 +2,7 @@
 // Valida los precios reales desde Firestore (el cliente no puede alterarlos),
 // calcula el envío según la configuración del admin y guarda el pedido.
 
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 
 // Códigos de descuento. Esta tabla es la que manda: el navegador solo manda el
 // código, aquí se valida y se recalcula el precio real que cobra Mercado Pago.
@@ -161,7 +161,11 @@ export default async function handler(req, res) {
 
     // Guardar el pedido (colección "pedidos", solo-crear)
     const orderId = 'PED-' + Date.now().toString(36).toUpperCase();
+    // Secreto del pedido: viaja en los metadatos de Mercado Pago y permite que el
+    // webhook actualice este pedido. Nadie más puede leerlo (las reglas bloquean la lectura).
+    const secreto = randomBytes(16).toString('hex');
     const orderFields = {
+      secreto: fsv(secreto),
       fecha: fsv(new Date().toISOString()),
       status: fsv('pendiente_pago'),
       nombre: fsv(envio.nombre),
@@ -188,20 +192,8 @@ export default async function handler(req, res) {
       body: JSON.stringify({ fields: orderFields }),
     });
 
-    // Marcar el código como usado por esta persona (solo el hash, sin datos personales)
-    if (hashCupon && descuento > 0) {
-      try {
-        await fetch(`${FS_BASE}/cupones_usados/?documentId=${hashCupon}&key=${API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fields: { codigo: fsv(codigo), fecha: fsv(new Date().toISOString()), pedido: fsv(orderId) },
-          }),
-        });
-      } catch (e) {
-        // Si falla el registro no cancelamos la venta
-      }
-    }
+    // El cupón NO se marca aquí: lo marca el webhook cuando Mercado Pago
+    // confirma el pago, para que nadie pierda su descuento si abandona el carrito.
 
     // Crear preferencia de Mercado Pago
     const base = `https://${req.headers.host}`;
@@ -219,6 +211,13 @@ export default async function handler(req, res) {
         },
         auto_return: 'approved',
         statement_descriptor: 'DOCTORDISCO',
+        notification_url: `${base}/api/webhook-mp`,
+        metadata: {
+          pedido: orderId,
+          secreto,
+          cupon: cuponAplicado,
+          cupon_hash: hashCupon,
+        },
       }),
     });
     const pref = await prefRes.json();
