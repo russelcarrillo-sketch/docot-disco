@@ -2,6 +2,13 @@
 // Valida los precios reales desde Firestore (el cliente no puede alterarlos),
 // calcula el envío según la configuración del admin y guarda el pedido.
 
+// Códigos de descuento. Esta tabla es la que manda: el navegador solo manda el
+// código, aquí se valida y se recalcula el precio real que cobra Mercado Pago.
+// (Hay una copia para la vista previa en catalogo.html — actualiza ambas.)
+const CUPONES = {
+  BIENVENIDO10: { pct: 10 },
+};
+
 const PROJECT = 'peces-disco';
 const API_KEY = 'AIzaSyA0C0UR6-R4S_Cp86yEEfj1COLkY5oFPn4';
 const FS_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
@@ -41,7 +48,7 @@ export default async function handler(req, res) {
     return;
   }
   try {
-    const { items, envio, envioTipo } = req.body || {};
+    const { items, envio, envioTipo, cupon } = req.body || {};
     if (!Array.isArray(items) || !items.length) {
       res.status(400).json({ error: 'El carrito está vacío' });
       return;
@@ -79,7 +86,36 @@ export default async function handler(req, res) {
       detalle.push({ nombre: titulo, cantidad: qty, precio: Number(v.precio) });
     }
 
+    // Descuento: se valida aquí contra la tabla del servidor, nunca se confía en el navegador
+    const codigo = String(cupon || '').trim().toUpperCase();
+    const cup = CUPONES[codigo] || null;
+    const descuento = cup ? Math.round(subtotal * cup.pct) / 100 : 0;
+    const cuponAplicado = cup ? codigo : '';
+    if (descuento > 0) {
+      // Mercado Pago no acepta importes negativos: el descuento se reparte entre los productos
+      const objetivo = Math.round((subtotal - descuento) * 100) / 100;
+      const factor = objetivo / subtotal;
+      let suma = 0;
+      mpItems.forEach((it) => {
+        it.unit_price = Math.round(it.unit_price * factor * 100) / 100;
+        suma = Math.round((suma + it.unit_price * it.quantity) * 100) / 100;
+      });
+      // Los centavos que sobren por el redondeo se ajustan en el último producto
+      const dif = Math.round((objetivo - suma) * 100) / 100;
+      if (dif !== 0 && mpItems.length) {
+        const last = mpItems[mpItems.length - 1];
+        last.unit_price = Math.round((last.unit_price + dif / last.quantity) * 100) / 100;
+      }
+      mpItems.push({
+        title: `Descuento ${codigo} (-${cup.pct}%) ya aplicado`,
+        quantity: 1,
+        unit_price: 0,
+        currency_id: 'MXN',
+      });
+    }
+
     // Envío: terrestre (puede ser gratis) o aéreo. El costo se calcula aquí, no se confía en el cliente.
+    // El envío gratis se mide sobre el subtotal ANTES del descuento.
     const envioGratisDesde = Number(hyg.envioGratisDesde) || 0;
     const aplicaGratis = envioGratisDesde > 0 && subtotal >= envioGratisDesde;
     const costoAereo = Number(hyg.envioAereo) || 0;
@@ -93,7 +129,7 @@ export default async function handler(req, res) {
     if (costoEnvio > 0) {
       mpItems.push({ title: envioNombre, quantity: 1, unit_price: costoEnvio, currency_id: 'MXN' });
     }
-    const total = subtotal + costoEnvio;
+    const total = Math.round((subtotal - descuento + costoEnvio) * 100) / 100;
 
     // Guardar el pedido (colección "pedidos", solo-crear)
     const orderId = 'PED-' + Date.now().toString(36).toUpperCase();
@@ -111,6 +147,8 @@ export default async function handler(req, res) {
       referencias: fsv(envio.referencias || ''),
       items: fsv(JSON.stringify(detalle)),
       subtotal: fsv(subtotal),
+      cupon: fsv(cuponAplicado),
+      descuento: fsv(descuento),
       envio: fsv(costoEnvio),
       envioTipo: fsv(tipo),
       envioNombre: fsv(envioNombre),
