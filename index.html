@@ -1852,7 +1852,15 @@ window.deshacerCorte=async function(id){
 };
 
 // ── PEDIDOS EN LÍNEA (tienda Hygger) ──────────────────────
-const PED_ST={pendiente_pago:['🕐 Pendiente de pago','var(--amber)'],pagado:['💰 Pagado','var(--green)'],rechazado:['✖ Pago rechazado','var(--red)'],enviado:['🚚 Enviado','var(--teal)'],entregado:['✅ Entregado','var(--green)'],cancelado:['✖ Cancelado','var(--red)']};
+const PED_ST={pendiente_pago:['🕐 Pendiente de pago','var(--amber)'],pagado:['💰 Pagado','var(--green)'],rechazado:['✖ Rechazado','var(--red)'],enviado:['🚚 Enviado','var(--teal)'],entregado:['✅ Entregado','var(--green)'],cancelado:['✖ Cancelado','var(--red)']};
+// Nombres bonitos para el método de pago que reporta Mercado Pago
+const PAGO_METODO={visa:'Visa',master:'Mastercard',amex:'American Express',debvisa:'Visa débito',debmaster:'Mastercard débito',debelo:'Débito Elo',oxxo:'OXXO',paycash:'PayCash',banamex:'Citibanamex',bancomer:'BBVA',serfin:'Santander',banorte:'Banorte',hsbc:'HSBC',scotiabank:'Scotiabank',account_money:'Dinero en Mercado Pago',mercadopago:'Mercado Pago'};
+function fdatehora(iso){
+  if(!iso)return '';
+  const d=new Date(iso);
+  if(isNaN(d))return '';
+  return d.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
 window.renderPedidos=async function(){
   const el=document.getElementById('ped-list');
   el.innerHTML='<div class="empty">Cargando pedidos...</div>';
@@ -1875,7 +1883,19 @@ window.renderPedidos=async function(){
           <div style="min-width:0"><strong style="font-size:14px">${p.nombre||'Sin nombre'}</strong><div style="font-size:11px;color:var(--tx3)">${p.id} · ${f}</div></div>
           <span class="bdg" style="color:${st[1]};border-color:${st[1]};flex-shrink:0">${st[0]}</span>
         </div>
-        ${p.pagoId?`<div style="font-size:11px;color:var(--green);margin:-2px 0 7px">✓ Mercado Pago confirmó: ${p.pagoEstado||''} · pago ${p.pagoId}${p.pagoMetodo?' · '+p.pagoMetodo:''}</div>`:''}
+        ${p.pagoId?(()=>{
+          const ok=p.pagoEstado==='approved';
+          const col=ok?'var(--green)':'var(--red)';
+          const bg=ok?'var(--gbg)':'var(--rbg)';
+          const bd=ok?'var(--gbd)':'var(--rbd)';
+          const met=PAGO_METODO[p.pagoMetodo]||p.pagoMetodo||'';
+          const fch=fdatehora(p.pagoFecha);
+          return `<div style="background:${bg};border:1px solid ${bd};border-radius:var(--rs);padding:7px 10px;margin:2px 0 8px;font-size:11.5px;color:${col};line-height:1.6">
+            <strong>${ok?'✓ Pago confirmado por Mercado Pago':'✖ Mercado Pago reportó: '+(p.pagoEstado||'')}</strong>
+            ${met?`<br>💳 ${met}`:''}${fch?` · 📅 ${fch}`:''}
+            <br><span style="color:var(--tx3)">ID de pago: ${p.pagoId}</span>
+          </div>`;
+        })():''}
         ${items.map(i=>`<div style="font-size:12px;color:var(--tx2)">${i.cantidad}x ${i.nombre} — ${fmt(i.precio)}</div>`).join('')}
         <div style="font-size:12px;color:var(--tx2);margin-top:6px">📍 ${dir}</div>
         ${p.referencias?`<div style="font-size:11.5px;color:var(--tx3)">Ref: ${p.referencias}</div>`:''}
