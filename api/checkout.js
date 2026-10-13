@@ -2,12 +2,24 @@
 // Valida los precios reales desde Firestore (el cliente no puede alterarlos),
 // calcula el envío según la configuración del admin y guarda el pedido.
 
+import { createHash } from 'node:crypto';
+
 // Códigos de descuento. Esta tabla es la que manda: el navegador solo manda el
 // código, aquí se valida y se recalcula el precio real que cobra Mercado Pago.
 // (Hay una copia para la vista previa en catalogo.html — actualiza ambas.)
+// unaVezPorPersona: el mismo correo no puede volver a usarlo.
 const CUPONES = {
-  BIENVENIDO10: { pct: 10 },
+  BIENVENIDO10: { pct: 10, unaVezPorPersona: true },
 };
+
+// Identificador anónimo de "este correo ya usó este código".
+// Es un hash: no guardamos el correo en ningún lado.
+function cuponHash(codigo, correo) {
+  return createHash('sha256')
+    .update(codigo + '|' + String(correo).trim().toLowerCase())
+    .digest('hex')
+    .slice(0, 40);
+}
 
 const PROJECT = 'peces-disco';
 const API_KEY = 'AIzaSyA0C0UR6-R4S_Cp86yEEfj1COLkY5oFPn4';
@@ -53,7 +65,7 @@ export default async function handler(req, res) {
       res.status(400).json({ error: 'El carrito está vacío' });
       return;
     }
-    const requeridos = ['nombre', 'telefono', 'direccion', 'colonia', 'ciudad', 'estado', 'cp'];
+    const requeridos = ['nombre', 'telefono', 'correo', 'direccion', 'colonia', 'ciudad', 'estado', 'cp'];
     for (const c of requeridos) {
       if (!envio || !String(envio[c] || '').trim()) {
         res.status(400).json({ error: 'Faltan datos de envío' });
@@ -88,7 +100,23 @@ export default async function handler(req, res) {
 
     // Descuento: se valida aquí contra la tabla del servidor, nunca se confía en el navegador
     const codigo = String(cupon || '').trim().toUpperCase();
-    const cup = CUPONES[codigo] || null;
+    let cup = CUPONES[codigo] || null;
+    let hashCupon = '';
+    if (cup && cup.unaVezPorPersona) {
+      hashCupon = cuponHash(codigo, envio.correo);
+      try {
+        const usoRes = await fetch(`${FS_BASE}/cupones_usados/${hashCupon}?key=${API_KEY}`);
+        if (usoRes.ok) {
+          res.status(400).json({
+            error: `El código ${codigo} ya fue usado con el correo ${envio.correo}. Es válido una sola vez por persona.`,
+            cuponUsado: true,
+          });
+          return;
+        }
+      } catch (e) {
+        // Si no se puede verificar, se deja pasar el descuento antes que bloquear la venta
+      }
+    }
     const descuento = cup ? Math.round(subtotal * cup.pct) / 100 : 0;
     const cuponAplicado = cup ? codigo : '';
     if (descuento > 0) {
@@ -159,6 +187,21 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields: orderFields }),
     });
+
+    // Marcar el código como usado por esta persona (solo el hash, sin datos personales)
+    if (hashCupon && descuento > 0) {
+      try {
+        await fetch(`${FS_BASE}/cupones_usados/?documentId=${hashCupon}&key=${API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fields: { codigo: fsv(codigo), fecha: fsv(new Date().toISOString()), pedido: fsv(orderId) },
+          }),
+        });
+      } catch (e) {
+        // Si falla el registro no cancelamos la venta
+      }
+    }
 
     // Crear preferencia de Mercado Pago
     const base = `https://${req.headers.host}`;
